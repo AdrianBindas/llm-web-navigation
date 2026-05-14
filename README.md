@@ -9,9 +9,9 @@ Diploma thesis repository
 - May 2026 - Implementation of a "proof of concept" Candidate Generation
 - June 2026 - Implementation of a "proof of concept" Action Prediction (text-based approach first)
 - July 2026 - Data gathering, extending existing bechmark
-- August 2026 - Implementation of full method
-- Autumn 2026 - Evaluation of implemented method, comparison with existing methods
-- Winter 2027 - Writing and finishing paper
+- August - September 2026 - Implementation of full method
+- Winter 2026 - Evaluation of implemented method, comparison with existing methods
+- Spring 2027 - Writing and finishing paper
 
 ## Technology Stack
 ### General
