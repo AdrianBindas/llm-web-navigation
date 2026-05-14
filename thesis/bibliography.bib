@@ -1,0 +1,352 @@
+
+@misc{krupp_quantifying_2025,
+	title = {Quantifying {Web} {Agents} - {A} {Survey} on {Web} {Agent} {Performance} and {Efficiency}},
+	copyright = {https://creativecommons.org/licenses/by/4.0/legalcode},
+	url = {https://osf.io/vhn2c_v2},
+	doi = {10.31219/osf.io/vhn2c_v2},
+	abstract = {Web agents are systems capable of navigating and interacting autonomously with the World Wide Web. While this concept is almost as old as the web itself, the recent success of large language models (LLMs) and their accompanying capabilities has accelerated the development of web agents.As the adoption of web agents continues, the need arises to compare actual performance and energy trade-offs, providing potential users and developers with insights on which web agent to select based on their preferences. However, concrete performance ratings and details on computational efficiency remain vague due to existing web agents and their respective benchmarks, which offer non-standardized performance ratings only. Further, the inside mechanisms of the agents obfuscate computational efficiency evaluations. In this survey, we systematically assess 79 web agents and their benchmarks (N=27), breaking down benchmark ratings and evaluating the computational efficiency of their crucial components. Our survey demonstrates two research gaps: (1) a lack of comparability among web agent performance ratings due to non-standardized metrics and (2) a lack of awareness of computational efficiency in the design of web agents, which puts their sustainability into question.We contribute step-by-step guides on developing web agents and selecting appropriate benchmarks for assuring computational efficiency. Our work enables further research and development of web agents with sustainability is a key factor.},
+	publisher = {Open Science Framework},
+	author = {Krupp, Lars and Geißler, Daniel and Wozniak, Pawel W. and Lukowicz, Paul and Karolus, Jakob},
+	month = jun,
+	year = {2025},
+	keywords = {survey, benchmark/dataset},
+	file = {PDF:C\:\\Users\\Adrian\\Zotero\\storage\\TL8EJ6PB\\Krupp et al. - 2025 - Quantifying Web Agents - A Survey on Web Agent Performance and Efficiency.pdf:application/pdf},
+}
+
+@inproceedings{deng_mind2web_2023,
+author = {Deng, Xiang and Gu, Yu and Zheng, Boyuan and Chen, Shijie and Stevens, Samuel and Wang, Boshi and Sun, Huan and Su, Yu},
+title = {MIND2WEB: towards a generalist agent for the web},
+year = {2023},
+publisher = {Curran Associates Inc.},
+address = {Red Hook, NY, USA},
+abstract = {We introduce MIND2WEB, the first dataset for developing and evaluating generalist agents for the web that can follow language instructions to complete complex tasks on any website. Existing datasets for web agents either use simulated websites or only cover a limited set of websites and tasks, thus not suitable for generalist web agents. With over 2,000 open-ended tasks collected from 137 websites spanning 31 domains and crowdsourced action sequences for the tasks, MIND2WEB provides three necessary ingredients for building generalist web agents: 1) diverse domains, websites, and tasks, 2) use of real-world websites instead of simulated and simplified ones, and 3) a broad spectrum of user interaction patterns. Based on MIND2WEB, we conduct an initial exploration of using large language models (LLMs) for building generalist web agents. While the raw HTML of real-world websites are often too large to be fed to LLMs, we show that first filtering it with a small LM significantly improves the effectiveness and efficiency of LLMs. Our solution demonstrates a decent level of performance, even on websites or entire domains the model has never seen before, but there is still a substantial room to improve towards truly generalizable agents. We open-source our dataset, model implementation, and trained models (https://osu-nlp-group.github.io/Mind2Web) to facilitate further research on building a generalist agent for the web.},
+booktitle = {Proceedings of the 37th International Conference on Neural Information Processing Systems},
+articleno = {1220},
+numpages = {24},
+location = {New Orleans, LA, USA},
+series = {NIPS '23},
+url = {https://dl.acm.org/doi/10.5555/3666122.3667342},
+}
+
+@inproceedings{he_webvoyager_2024,
+    title = "{W}eb{V}oyager: Building an End-to-End Web Agent with Large Multimodal Models",
+    author = "He, Hongliang  and
+      Yao, Wenlin  and
+      Ma, Kaixin  and
+      Yu, Wenhao  and
+      Dai, Yong  and
+      Zhang, Hongming  and
+      Lan, Zhenzhong  and
+      Yu, Dong",
+    editor = "Ku, Lun-Wei  and
+      Martins, Andre  and
+      Srikumar, Vivek",
+    booktitle = "Proceedings of the 62nd Annual Meeting of the Association for Computational Linguistics (Volume 1: Long Papers)",
+    month = aug,
+    year = "2024",
+    address = "Bangkok, Thailand",
+    publisher = "Association for Computational Linguistics",
+    url = "https://aclanthology.org/2024.acl-long.371/",
+    doi = "10.18653/v1/2024.acl-long.371",
+    pages = "6864--6890",
+    abstract = "The rapid advancement of large language models (LLMs) has led to a new era marked by the development of autonomous applications in real-world scenarios, which drives innovation in creating advanced web agents. Existing web agents typically only handle one input modality and are evaluated only in simplified web simulators or static web snapshots, greatly limiting their applicability in real-world scenarios. To bridge this gap, we introduce WebVoyager, an innovative Large Multimodal Model (LMM) powered web agent that can complete user instructions end-to-end by interacting with real-world websites. Moreover, we establish a new benchmark by compiling real-world tasks from 15 popular websites and introduce an automatic evaluation protocol leveraging multimodal understanding abilities of GPT-4V to evaluate open-ended web agents. We show that WebVoyager achieves a 59.1{\%} task success rate on our benchmark, significantly surpassing the performance of both GPT-4 (All Tools) and the WebVoyager (text-only) setups, underscoring the exceptional capability of WebVoyager. The proposed automatic evaluation metric achieves 85.3{\%} agreement with human judgment, indicating its effectiveness in providing reliable and accurate assessments of web agents."
+}
+
+@inproceedings{
+song_bearcubs_2025,
+title={{BEARCUBS}: A benchmark for computer-using web agents},
+author={Yixiao Song and Katherine Thai and Chau Minh Pham and Yapei Chang and Mazin Nadaf and Mohit Iyyer},
+booktitle={Second Conference on Language Modeling},
+year={2025},
+url={https://openreview.net/forum?id=0JzWiigkUy}
+}
+
+@inproceedings{erdogan_plan-and-act_2025,
+author = {Erdogan, Lutfi Eren and Lee, Nicholas and Kim, Sehoon and Moon, Suhong and Furuta, Hiroki and Anumanchipalli, Gopala and Keutzer, Kurt and Gholami, Amir},
+title = {PLAN-AND-ACT: improving planning of agents for long-horizon tasks},
+year = {2025},
+publisher = {JMLR.org},
+abstract = {Large language models (LLMs) have shown remarkable advancements in enabling language agents to tackle simple tasks. However, applying them for complex, multi-step, long-horizon tasks remains a challenge. Recent work have found success by separating high-level planning from low-level execution, which enables the model to effectively balance high-level planning objectives and low-level execution details. However, generating accurate plans remains difficult since LLMs are not inherently trained for this task. To address this, we propose PLAN-AND-ACT, a novel framework that incorporates explicit planning into LLM-based agents and introduces a scalable method to enhance plan generation through a novel synthetic data generation method. PLAN-AND-ACT consists of a PLANNER model which generates structured, high-level plans to achieve user goals, and an EXECUTOR model that translates these plans into environment-specific actions. To train the PLANNER effectively, we introduce a synthetic data generation method that annotates ground-truth trajectories with feasible plans, augmented with diverse and extensive examples to enhance generalization. We evaluate PLAN-AND-ACT using web navigation as a representative long-horizon planning environment, demonstrating a state-of-the-art 57.58\% success rate on the WebArena-Lite benchmark as well as a text-only state-of-the-art 81.36\% success rate on WebVoyager.},
+booktitle = {Proceedings of the 42nd International Conference on Machine Learning},
+articleno = {594},
+numpages = {44},
+location = {Vancouver, Canada},
+series = {ICML'25},
+url = {https://dl.acm.org/doi/10.5555/3780338.3780932}
+}}
+
+@inproceedings{tao_webwise_2024,
+	address = {Mexico City, Mexico},
+	title = {{WebWISE}: {Unlocking} {Web} {Interface} {Control} for {LLMs} via {Sequential} {Exploration}},
+	shorttitle = {{WebWISE}},
+	url = {https://aclanthology.org/2024.findings-naacl.234},
+	doi = {10.18653/v1/2024.findings-naacl.234},
+	booktitle = {Findings of the {Association} for {Computational} {Linguistics}: {NAACL} 2024},
+	publisher = {Association for Computational Linguistics},
+	author = {Tao, Heyi and T V, Sethuraman and Shlapentokh-Rothman, Michal and Gupta, Tanmay and Ji, Heng and Hoiem, Derek},
+	year = {2024},
+	keywords = {text},
+	pages = {3693--3711},
+	annote = {uses filtered DOM as an input for LLM
+},
+	file = {PDF:C\:\\Users\\Adrian\\Zotero\\storage\\X6TTYMGX\\Tao et al. - 2024 - WebWISE Unlocking Web Interface Control for LLMs via Sequential Exploration.pdf:application/pdf},
+}
+
+@misc{lutz_wilbur_2024,
+	title = {{WILBUR}: {Adaptive} {In}-{Context} {Learning} for {Robust} and {Accurate} {Web} {Agents}},
+	copyright = {Creative Commons Attribution 4.0 International},
+	shorttitle = {{WILBUR}},
+	url = {https://arxiv.org/abs/2404.05902},
+	doi = {10.48550/ARXIV.2404.05902},
+	abstract = {In the realm of web agent research, achieving both generalization and accuracy remains a challenging problem. Due to high variance in website structure, existing approaches often fail. Moreover, existing fine-tuning and in-context learning techniques fail to generalize across multiple websites. We introduce Wilbur, an approach that uses a differentiable ranking model and a novel instruction synthesis technique to optimally populate a black-box large language model's prompt with task demonstrations from previous runs. To maximize end-to-end success rates, we also propose an intelligent backtracking mechanism that learns and recovers from its mistakes. Finally, we show that our ranking model can be trained on data from a generative auto-curriculum which samples representative goals from an LLM, runs the agent, and automatically evaluates it, with no manual annotation. Wilbur achieves state-of-the-art results on the WebVoyager benchmark, beating text-only models by 8\% overall, and up to 36\% on certain websites. On the same benchmark, Wilbur is within 5\% of a strong multi-modal model despite only receiving textual inputs, and further analysis reveals a substantial number of failures are due to engineering challenges of operating the web.},
+	publisher = {arXiv},
+	author = {Lutz, Michael and Bohra, Arth and Saroyan, Manvel and Harutyunyan, Artem and Campagna, Giovanni},
+	year = {2024},
+	note = {Version Number: 1},
+	keywords = {Computation and Language (cs.CL), FOS: Computer and information sciences, Artificial Intelligence (cs.AI), text},
+	annote = {In context demonstration generation and retrieval
+},
+	file = {PDF:C\:\\Users\\Adrian\\Zotero\\storage\\EMCI37XH\\Lutz et al. - 2024 - WILBUR Adaptive In-Context Learning for Robust and Accurate Web Agents.pdf:application/pdf},
+}
+
+@misc{wang_colorbrowseragent_2026,
+	title = {{ColorBrowserAgent}: {Complex} {Long}-{Horizon} {Browser} {Agent} with {Adaptive} {Knowledge} {Evolution}},
+	copyright = {arXiv.org perpetual, non-exclusive license},
+	shorttitle = {{ColorBrowserAgent}},
+	url = {https://arxiv.org/abs/2601.07262},
+	doi = {10.48550/ARXIV.2601.07262},
+	abstract = {With the advancement of vision-language models, web automation has made significant progress. However, deploying autonomous agents in real-world settings remains challenging, primarily due to site heterogeneity, where generalist models lack domain-specific priors for diverse interfaces, and long-horizon instability, characterized by the accumulation of decision drift over extended interactions. To address these challenges, we introduce ColorBrowserAgent (Complex Long-Horizon Browser Agent), a knowledge-evolving agent for robust web automation. Our approach addresses these challenges through two synergistic mechanisms: human-in-the-loop knowledge adaptation that transforms sparse human feedback into reusable domain knowledge, and knowledge-aligned progressive summarization that stabilizes long interactions through memory compression. Extensive experiments on WebArena, WebChoreArena and industrial deployment show that ColorBrowserAgent consistently outperforms strong baselines. It achieves a state-of-the-art success rate of 71.2\% on WebArena and maintains 47.4\% performance under zero-shot transfer setting on WebChoreArena. In commercial deployment, it improves user satisfaction by 19.3\% relatively, verifying its robustness in real-world scenarios.},
+	publisher = {arXiv},
+	author = {Wang, Jihong and Zhou, Jiamu and Zhang, Weiming and Liu, Weiwen and Zhang, Zhuosheng and Lou, Xingyu and Zhang, Weinan and Deng, Huarong and Wang, Jun},
+	year = {2026},
+	note = {Version Number: 2},
+	keywords = {FOS: Computer and information sciences, Human-Computer Interaction (cs.HC), visual, text},
+	annote = {framework, prompting LLM
+},
+	file = {PDF:C\:\\Users\\Adrian\\Zotero\\storage\\3ULV2M2D\\Wang et al. - 2026 - ColorBrowserAgent Complex Long-Horizon Browser Agent with Adaptive Knowledge Evolution.pdf:application/pdf},
+}
+
+@misc{guo_opagent_2026,
+	title = {{OpAgent}: {Operator} {Agent} for {Web} {Navigation}},
+	copyright = {arXiv.org perpetual, non-exclusive license},
+	shorttitle = {{OpAgent}},
+	url = {https://arxiv.org/abs/2602.13559},
+	doi = {10.48550/ARXIV.2602.13559},
+	abstract = {To fulfill user instructions, autonomous web agents must contend with the inherent complexity and volatile nature of real-world websites. Conventional paradigms predominantly rely on Supervised Fine-Tuning (SFT) or Offline Reinforcement Learning (RL) using static datasets. However, these methods suffer from severe distributional shifts, as offline trajectories fail to capture the stochastic state transitions and real-time feedback of unconstrained wide web environments. In this paper, we propose a robust Online Reinforcement Learning WebAgent, designed to optimize its policy through direct, iterative interactions with unconstrained wide websites. Our approach comprises three core innovations: 1) Hierarchical Multi-Task Fine-tuning: We curate a comprehensive mixture of datasets categorized by functional primitives -- Planning, Acting, and Grounding -- establishing a Vision-Language Model (VLM) with strong instruction-following capabilities for Web GUI tasks. 2) Online Agentic RL in the Wild: We develop an online interaction environment and fine-tune the VLM using a specialized RL pipeline. We introduce a Hybrid Reward Mechanism that combines a ground-truth-agnostic WebJudge for holistic outcome assessment with a Rule-based Decision Tree (RDT) for progress reward. This system effectively mitigates the credit assignment challenge in long-horizon navigation. Notably, our RL-enhanced model achieves a 38.1{\textbackslash}\% success rate (pass@5) on WebArena, outperforming all existing monolithic baselines. 3) Operator Agent: We introduce a modular agentic framework, namely {\textbackslash}textbf\{OpAgent\}, orchestrating a Planner, Grounder, Reflector, and Summarizer. This synergy enables robust error recovery and self-correction, elevating the agent's performance to a new State-of-the-Art (SOTA) success rate of {\textbackslash}textbf\{71.6{\textbackslash}\%\}.},
+	publisher = {arXiv},
+	author = {Guo, Yuyu and Yang, Wenjie and Yang, Siyuan and Liu, Ziyang and Chen, Cheng and Wei, Yuan and Hu, Yun and Huang, Yang and Hao, Guoliang and Yuan, Dongsheng and Wang, Jianming and Chen, Xin and Yu, Hang and Lei, Lei and Di, Peng},
+	year = {2026},
+	note = {Version Number: 1},
+	keywords = {FOS: Computer and information sciences, Artificial Intelligence (cs.AI), visual, text},
+	annote = {Qwen2.5 as a grounding MLLM
+},
+	file = {PDF:C\:\\Users\\Adrian\\Zotero\\storage\\6RDR9XV9\\Guo et al. - 2026 - OpAgent Operator Agent for Web Navigation.pdf:application/pdf},
+}
+
+@inproceedings{verma_adaptagent_2025,
+	address = {Vienna, Austria},
+	title = {{AdaptAgent}: {Adapting} {Multimodal} {Web} {Agents} with {Few}-{Shot} {Learning} from {Human} {Demonstrations}},
+	shorttitle = {{AdaptAgent}},
+	url = {https://aclanthology.org/2025.acl-long.1008},
+	doi = {10.18653/v1/2025.acl-long.1008},
+	booktitle = {Proceedings of the 63rd {Annual} {Meeting} of the {Association} for {Computational} {Linguistics} ({Volume} 1: {Long} {Papers})},
+	publisher = {Association for Computational Linguistics},
+	author = {Verma, Gaurav and Kaur, Rachneet and Srishankar, Nishan and Zeng, Zhen and Balch, Tucker and Veloso, Manuela},
+	year = {2025},
+	keywords = {visual, text},
+	pages = {20635--20651},
+	annote = {few shot learning, multimodal in context examples, meta-training for open weight models, benchmark: Mind2Web, VisualWebArena},
+}
+
+@inproceedings{furuta_multimodal_2023,
+title={Multimodal Web Navigation with Instruction-Finetuned Foundation Models},
+author={Hiroki Furuta and Kuang-Huei Lee and Ofir Nachum and Yutaka Matsuo and Aleksandra Faust and Shixiang Shane Gu and Izzeddin Gur},
+booktitle={The Twelfth International Conference on Learning Representations},
+year={2024},
+url={https://iclr.cc/virtual/2023/13617}
+}
+
+@inproceedings{zheng_gpt-4vision_2024,
+author = {Zheng, Boyuan and Gou, Boyu and Kil, Jihyung and Sun, Huan and Su, Yu},
+title = {GPT-4V(ision) is a generalist web agent, if grounded},
+year = {2024},
+publisher = {JMLR.org},
+abstract = {The recent development on large multimodal models (LMMs), especially GPT-4V(ision) and Gemini, has been quickly expanding the capability boundaries of multimodal models beyond traditional tasks like image captioning and visual question answering. In this work, we explore the potential of LMMs like GPT-4V as a generalist web agent that can follow natural language instructions to complete tasks on any given website. We propose SEEACT, a generalist web agent that harnesses the power of LMMs for integrated visual understanding and acting on the web. We evaluate on the recent MIND2WEB benchmark. In addition to standard offline evaluation on cached websites, we enable a new online evaluation setting by developing a tool that allows running web agents on live websites. We show that GPT-4V presents a great potential for web agents--it can successfully complete 51.1\% of the tasks on live websites if we manually ground its textual plans into actions on the websites. This substantially outperforms text-only LLMs like GPT-4 or smaller models (FLAN-T5 and BLIP-2) specifically finetuned for web agents. However, grounding still remains a major challenge. Existing LMM grounding strategies like set-of-mark prompting turns out to be not effective for web agents, and the best grounding strategy we develop in this paper leverages both the HTML structure and visuals. Yet, there is still a substantial gap with oracle grounding, leaving ample room for further improvement. All code, data, and evaluation tools are available at https://github.com/OSU-NLP-Group/SeeAct.},
+booktitle = {Proceedings of the 41st International Conference on Machine Learning},
+articleno = {2538},
+numpages = {37},
+location = {Vienna, Austria},
+series = {ICML'24},
+url = {https://dl.acm.org/doi/10.5555/3692070.3694608},
+}
+
+@inproceedings{zhang_you_2024,
+	address = {Bangkok, Thailand and virtual meeting},
+	title = {You {Only} {Look} at {Screens}: {Multimodal} {Chain}-of-{Action} {Agents}},
+	shorttitle = {You {Only} {Look} at {Screens}},
+	url = {https://aclanthology.org/2024.findings-acl.186},
+	doi = {10.18653/v1/2024.findings-acl.186},
+	booktitle = {Findings of the {Association} for {Computational} {Linguistics} {ACL} 2024},
+	publisher = {Association for Computational Linguistics},
+	author = {Zhang, Zhuosheng and Zhang, Aston},
+	year = {2024},
+	keywords = {visual},
+	pages = {3132--3149},
+	annote = {Screenshot processed by encoder, along with action history fed into LLM
+},
+	file = {2024.findings-acl.186:C\:\\Users\\Adrian\\Zotero\\storage\\GBRMGJM2\\2024.findings-acl.186.pdf:application/pdf},
+}
+
+@misc{lu_omniparser_2024,
+title={OmniParser for Pure Vision Based {GUI} Agent},
+author={Yadong Lu and Jianwei Yang and yelong shen and Ahmed Hassan Awadallah},
+year={2025},
+doi = {10.48550/ARXIV.2408.00203},
+url={https://openreview.net/forum?id=C6hUK6Q1Pi}
+}
+
+@inproceedings{nguyen_gui_2025,
+	address = {Vienna, Austria},
+	title = {{GUI} {Agents}: {A} {Survey}},
+	shorttitle = {{GUI} {Agents}},
+	url = {https://aclanthology.org/2025.findings-acl.1158},
+	doi = {10.18653/v1/2025.findings-acl.1158},
+	booktitle = {Findings of the {Association} for {Computational} {Linguistics}: {ACL} 2025},
+	publisher = {Association for Computational Linguistics},
+	author = {Nguyen, Dang and Chen, Jian and Wang, Yu and Wu, Gang and Park, Namyong and Hu, Zhengmian and Lyu, Hanjia and Wu, Junda and Aponte, Ryan and Xia, Yu and Li, Xintong and Shi, Jing and Chen, Hongjie and Lai, Viet Dac and Xie, Zhouhang and Kim, Sungchul and Zhang, Ruiyi and Yu, Tong and Tanjim, Mehrab and Ahmed, Nesreen K. and Mathur, Puneet and Yoon, Seunghyun and Yao, Lina and Kveton, Branislav and Kil, Jihyung and Nguyen, Thien Huu and Bui, Trung and Zhou, Tianyi and Rossi, Ryan A. and Dernoncourt, Franck},
+	year = {2025},
+	keywords = {survey},
+	pages = {22522--22538},
+	file = {PDF:C\:\\Users\\Adrian\\Zotero\\storage\\3HP4AMMN\\Nguyen et al. - 2025 - GUI Agents A Survey.pdf:application/pdf},
+}
+
+@inproceedings{yang_aria-ui_2025,
+	address = {Vienna, Austria},
+	title = {Aria-{UI}: {Visual} {Grounding} for {GUI} {Instructions}},
+	shorttitle = {Aria-{UI}},
+	url = {https://aclanthology.org/2025.findings-acl.1152},
+	doi = {10.18653/v1/2025.findings-acl.1152},
+	booktitle = {Findings of the {Association} for {Computational} {Linguistics}: {ACL} 2025},
+	publisher = {Association for Computational Linguistics},
+	author = {Yang, Yuhao and Wang, Yue and Li, Dongxu and Luo, Ziyang and Chen, Bei and Huang, Chao and Li, Junnan},
+	year = {2025},
+	keywords = {visual},
+	pages = {22418--22433},
+	file = {PDF:C\:\\Users\\Adrian\\Zotero\\storage\\2JI3633I\\Yang et al. - 2025 - Aria-UI Visual Grounding for GUI Instructions.pdf:application/pdf},
+}
+
+@misc{xu_aguvis_2024,
+	title = {Aguvis: {Unified} {Pure} {Vision} {Agents} for {Autonomous} {GUI} {Interaction}},
+	copyright = {Creative Commons Attribution Non Commercial No Derivatives 4.0 International},
+	shorttitle = {Aguvis},
+	url = {https://arxiv.org/abs/2412.04454},
+	doi = {10.48550/ARXIV.2412.04454},
+	abstract = {Automating GUI tasks remains challenging due to reliance on textual representations, platform-specific action spaces, and limited reasoning capabilities. We introduce Aguvis, a unified vision-based framework for autonomous GUI agents that directly operates on screen images, standardizes cross-platform interactions and incorporates structured reasoning via inner monologue. To enable this, we construct Aguvis Data Collection, a large-scale dataset with multimodal grounding and reasoning annotations, and develop a two-stage training pipeline that separates GUI grounding from planning and reasoning. Experiments show that Aguvis achieves state-of-the-art performance across offline and real-world online benchmarks, marking the first fully autonomous vision-based GUI agent that operates without closed-source models. We open-source all datasets, models, and training recipes at https://aguvis-project.github.io to advance future research.},
+	publisher = {arXiv},
+	author = {Xu, Yiheng and Wang, Zekun and Wang, Junli and Lu, Dunjie and Xie, Tianbao and Saha, Amrita and Sahoo, Doyen and Yu, Tao and Xiong, Caiming},
+	year = {2024},
+	note = {Version Number: 2},
+	keywords = {Computation and Language (cs.CL), FOS: Computer and information sciences, visual},
+	annote = {
+purely visual, 1196 tokens per 720p image, split to grounding and planning
+},
+	file = {PDF:C\:\\Users\\Adrian\\Zotero\\storage\\YBK77JMI\\Xu et al. - 2024 - Aguvis Unified Pure Vision Agents for Autonomous GUI Interaction.pdf:application/pdf},
+}
+
+@inproceedings{xue_illusion_2025,
+    booktitle = {COLM 2025},
+	title = {An {Illusion} of {Progress}? {Assessing} the {Current} {State} of {Web} {Agents}},
+	copyright = {arXiv.org perpetual, non-exclusive license},
+	shorttitle = {An {Illusion} of {Progress}?},
+	url = {https://openreview.net/forum?id=6jZi4HSs6o#},
+	doi = {10.48550/ARXIV.2504.01382},
+	abstract = {As digitalization and cloud technologies evolve, the web is becoming increasingly important in the modern society. Autonomous web agents based on large language models (LLMs) hold a great potential in work automation. It is therefore important to accurately measure and monitor the progression of their capabilities. In this work, we conduct a comprehensive and rigorous assessment of the current state of web agents. Our results depict a very different picture of the competency of current agents, suggesting over-optimism in previously reported results. This gap can be attributed to shortcomings in existing benchmarks. We introduce Online-Mind2Web, an online evaluation benchmark consisting of 300 diverse and realistic tasks spanning 136 websites. It enables us to evaluate web agents under a setting that approximates how real users use these agents. To facilitate more scalable evaluation and development, we also develop a novel LLM-as-a-Judge automatic evaluation method and show that it can achieve around 85\% agreement with human judgment, substantially higher than existing methods. Finally, we present the first comprehensive comparative analysis of current web agents, highlighting both their strengths and limitations to inspire future research.},
+	author = {Xue, Tianci and Qi, Weijian and Shi, Tianneng and Song, Chan Hee and Gou, Boyu and Song, Dawn and Sun, Huan and Su, Yu},
+	year = {2025},
+}
+
+@inproceedings{
+xie_scaling_2025,
+title={Scaling Computer-Use Grounding via User Interface Decomposition and Synthesis},
+author={Tianbao Xie and Jiaqi Deng and Xiaochuan Li and Junlin Yang and Haoyuan Wu and Jixuan Chen and Wenjing Hu and Xinyuan Wang and Yuhui Xu and Zekun Wang and Yiheng Xu and Junli Wang and Doyen Sahoo and Tao Yu and Caiming Xiong},
+booktitle={The Thirty-ninth Annual Conference on Neural Information Processing Systems Datasets and Benchmarks Track},
+year={2026},
+url={https://openreview.net/forum?id=FS0voKxELr}
+}
+
+@inproceedings{
+gou_navigating_2025,
+title={Navigating the Digital World as Humans Do: Universal Visual Grounding for {GUI} Agents},
+author={Boyu Gou and Ruohan Wang and Boyuan Zheng and Yanan Xie and Cheng Chang and Yiheng Shu and Huan Sun and Yu Su},
+booktitle={The Thirteenth International Conference on Learning Representations},
+year={2025},
+url={https://iclr.cc/virtual/2025/poster/32062}
+}}
+
+@inproceedings{cheng_seeclick_2024,
+	address = {Bangkok, Thailand},
+	title = {{SeeClick}: {Harnessing} {GUI} {Grounding} for {Advanced} {Visual} {GUI} {Agents}},
+	shorttitle = {{SeeClick}},
+	url = {https://aclanthology.org/2024.acl-long.505},
+	doi = {10.18653/v1/2024.acl-long.505},
+	booktitle = {Proceedings of the 62nd {Annual} {Meeting} of the {Association} for {Computational} {Linguistics} ({Volume} 1: {Long} {Papers})},
+	publisher = {Association for Computational Linguistics},
+	author = {Cheng, Kanzhi and Sun, Qiushi and Chu, Yougang and Xu, Fangzhi and YanTao, Li and Zhang, Jianbing and Wu, Zhiyong},
+	year = {2024},
+	keywords = {benchmark/dataset, visual},
+	pages = {9313--9332},
+	annote = {pretrained qwen on a GUI grounding dataset
+},
+}
+
+@article{ma20243drope, title={3D-RPE: Enhancing Long-Context Modeling Through 3D Rotary Position Encoding}, volume={39}, url={https://ojs.aaai.org/index.php/AAAI/article/view/34662}, DOI={10.1609/aaai.v39i23.34662}, abstractNote={An essential component in Large Language Models (LLMs) is Rotary Position Encoding (RoPE) , which efficiently manages positional dependencies in long-context modeling. However, when the number of input tokens surpasses the pretrained capacity of LLMs, their ability to process and generate text is markedly weakened. Although position interpolation techniques for RoPE can mitigate this issue, an increase in interpolations leads to a decrease in positional resolution. To tackle this challenge, drawing inspiration from the Bloch Sphere representation, we propose a novel rotary position encoding on a three-dimensional sphere, named 3D Rotary Position Encoding (3D-RPE). 3D-RPE is an advanced version of the widely used 2D RoPE, with two major advantages for modeling long contexts: controllable long-term decay and improved position resolution. For controllable long-term decay, 3D-RPE allows for the regulation of long-term decay within the chunk size, ensuring the modeling of relative positional information between tokens at a distant relative position. For improved position resolution, 3D-RPE can mitigate the degradation of position resolution caused by position interpolation on RoPE. We have conducted experiments on long-context Natural Language Understanding (NLU) and long sequence Language Modeling (LM) tasks. From the experimental results, 3D-RPE achieved performance improvements over RoPE, especially in long-context NLU tasks.}, number={23}, journal={Proceedings of the AAAI Conference on Artificial Intelligence}, author={Ma, Xindian and Liu, Wenyuan and Zhang, Peng and Xu, Nan}, year={2025}, month={4}, pages={24804–24811} }
+
+
+@inproceedings{chandu-etal-2021-grounding,
+    title = "Grounding `Grounding' in {NLP}",
+    author = "Chandu, Khyathi Raghavi  and
+      Bisk, Yonatan  and
+      Black, Alan W",
+    editor = "Zong, Chengqing  and
+      Xia, Fei  and
+      Li, Wenjie  and
+      Navigli, Roberto",
+    booktitle = "Findings of the Association for Computational Linguistics: ACL-IJCNLP 2021",
+    month = aug,
+    year = "2021",
+    address = "Online",
+    publisher = "Association for Computational Linguistics",
+    url = "https://aclanthology.org/2021.findings-acl.375/",
+    doi = "10.18653/v1/2021.findings-acl.375",
+    pages = "4283--4305"
+}
+
+@misc{venus15,
+      title={UI-Venus-1.5 Technical Report}, 
+      author={Venus Team and Changlong Gao and Zhangxuan Gu and Yulin Liu and Xinyu Qiu and Shuheng Shen and Yue Wen and Tianyu Xia and Zhenyu Xu and Zhengwen Zeng and Beitong Zhou and Xingran Zhou and Weizhi Chen and Sunhao Dai and Jingya Dou and Yichen Gong and Yuan Guo and Zhenlin Guo and Feng Li and Qian Li and Jinzhen Lin and Yuqi Zhou and Linchao Zhu and Liang Chen and Zhenyu Guo and Changhua Meng and Weiqiang Wang},
+      year={2026},
+      eprint={2602.09082},
+      archivePrefix={arXiv},
+      primaryClass={cs.CV},
+      url={https://arxiv.org/abs/2602.09082}, 
+}
+
+@inproceedings{prabhu2025waltwebagentslearn,
+title={{WALT}: Web Agents that Learn Tools},
+author={Viraj Prabhu and Yutong Dai and Matthew Fernandez and Krithika Ramakrishnan and Jing Gu and Yanqi Luo and silvio savarese and Caiming Xiong and Junnan Li and Zeyuan Chen and Ran Xu},
+booktitle={The Fourteenth International Conference on Learning Representations},
+year={2026},
+url={https://iclr.cc/virtual/2026/poster/10008481}
+}
+
+
+@online{claude_example,
+  author       = {{UI Grounding summary}},
+  year         = {2026},
+  organization = {Anthropic},
+  version      = {4.6},
+  note     = {Prompt: „Summarize state of the art web agent grounding approaches"},
+  url          = {https://claude.ai/share/d89648ba-6314-4a1e-b92f-219c5531505d},
+  urldate      = {2026-05-14},
+  publisher = {Claude},
+}

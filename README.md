@@ -2,16 +2,33 @@
 Diploma thesis repository
 
 ## Planning
-- End of 2025 - Thesis assignment formulated and submitted
-- Spring 2026 - Exploration of existing approaches
-- April 2026 - Writing down introduction and specification of methodology
-- May 2026 - Gathering few online website samples
+- ~~End of 2025 - Thesis assignment formulated and submitted~~
+- ~~Spring 2026 - Exploration of existing approaches~~
+- ~~April 2026 - Writing down introduction and specification of methodology~~
+- ~~May 2026 - Gathering few online website samples~~
 - May 2026 - Implementation of a "proof of concept" Candidate Generation
 - June 2026 - Implementation of a "proof of concept" Action Prediction (text-based approach first)
 - July 2026 - Data gathering, extending existing bechmark
 - August 2026 - Implementation of full method
 - Autumn 2026 - Evaluation of implemented method, comparison with existing methods
 - Winter 2027 - Writing and finishing paper
+
+## Technology Stack
+### General
+- Python 3.13+
+- [uv](https://docs.astral.sh/uv/) Python package manager in Rust
+- [MatPlotLib](https://matplotlib.org/stable/users/index) Visualization and plotting 
+
+### Candidate Generation
+- [BeautifulSoup4](https://pypi.org/project/beautifulsoup4/) Python library for manipulating HTML with backend in C
+- [Playwright](https://playwright.dev/) Web Automation library
+- [Ultralytics (YOLO)](https://docs.ultralytics.com/usage/python/) Inference and training of YOLO models
+- [NLTK](https://tedboy.github.io/nlps/nltk_intro.html) Text processing, classification and various NLP tasks
+
+### Action Prediction
+- [PyTorch](https://docs.pytorch.org/docs/2.11/index.html) Deep learning library for tensor computation
+- [Transformers](https://github.com/huggingface/transformers) Machine learning high-level framework maintained by HuggingFace, provides abstractions for model inference, training, finetuning...
+- [vLLM](https://docs.vllm.ai/en/latest/usage/) Framework for LLM inference and serving
 
 ## Thesis Assignment
 Automated interactions with web pages is a common process crucial for tasks such as testing and web scraping implemented by frameworks (such as Selenium, Playwright, Puppeteer). However it suffers from low reliability, poor robustness to website structure changes and high dependency on platform and target website. This thesis aims to **propose and evaluate novel improvements in this field combining Large Language Models (LLM), text processing and computer vision**.

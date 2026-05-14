@@ -1,0 +1,200 @@
+\documentclass[12pt, oneside]{book}  % jednostranna tlac
+
+\linespread{1.25} % hodnota 1.25 by mala zodpovedat 1.5 riadkovaniu
+\pagestyle{plain}
+
+\usepackage[a4paper,top=2.5cm,bottom=2.5cm,left=3.5cm,right=2cm]{geometry}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{graphicx}
+\usepackage{url}
+
+\usepackage{graphicx} % Required for inserting images
+\usepackage{amsmath}
+\usepackage{hyperref}
+
+\usepackage{pifont}
+
+%\usepackage{natbib}
+%\bibliographystyle{plain}
+%\bibliography{bibliography}
+
+ \usepackage[
+ backend=biber,
+ style=iso-authoryear,
+ maxnames=3,      % show up to 3 names before truncating
+ minnames=1,      % how many names to keep when truncating
+ ]{biblatex}
+ \addbibresource{bibliography.bib}
+\renewcommand*{\multinamedelim}{\addspace\bibstring{and}\addspace}
+\renewcommand*{\finalnamedelim}{\addspace\bibstring{and}\addspace}
+
+
+\title{Browser Automation with Natural Language Instructions Utilizing Multimodal Methods}
+\author{Adrián Bindas, Marek Šuppa}
+\date{March 2026}
+
+\def\mfrok{2026}
+\def\mftitle{Browser Automation with Natural Language Instructions Utilizing Multimodal Methods}
+\def\mfthesistype{Master thesis}
+\def\mfauthor{Bc. Adrián Bindas}
+\def\mfskolitel{Mgr. Marek Šuppa}
+\def\mfplacedate{Bratislava, 2026}
+\def\mfuniversity{COMENIUS UNIVERSITY IN BRATISLAVA}
+\def\mffaculty{FACULTY OF MATHEMATICS PHYSICS AND INFORMATICS}
+\def\mfodbor{Applied informatics}
+\def\program{Applied informatics}
+\def\mfpracovisko{Department of Applied Informatics}
+
+\begin{document}
+\frontmatter
+
+
+% -------------------
+% --- Obalka ------
+% -------------------
+
+\thispagestyle{empty}
+\begin{center}
+\sc  
+\large
+  Comenius University in Bratislava\\
+  Faculty of Mathematics, Physics and Informatics
+
+\vfill
+
+\includegraphics[width=0.4\textwidth]{assets/FMFI_Logo_BP.png}
+
+\vspace{-1cm} % adjust spacing as needed
+
+{\LARGE\mftitle}\\
+\mfthesistype
+\end{center}
+
+\vfill
+
+{\sc\large 
+\noindent \mfrok\\
+\mfauthor
+}
+
+\cleardoublepage
+% --- koniec obalky ----
+
+% -------------------
+% --- Titulný list
+% -------------------
+
+\noindent
+
+\thispagestyle{empty}
+\begin{center}
+\sc  
+\large
+  Comenius University in Bratislava\\
+  Faculty of Mathematics, Physics and Informatics
+
+\vfill
+
+\includegraphics[width=0.4\textwidth]{assets/FMFI_Logo_BP.png}
+
+\vspace{-1cm} % adjust spacing as needed
+
+{\LARGE\mftitle}\\
+\mfthesistype
+\end{center}
+
+\vfill
+
+\noindent
+\begin{tabular}{ll}
+Study Programme: & \program \\
+Field of Study: & \mfodbor \\
+Department: & \mfpracovisko \\
+Supervisor: & \mfskolitel \\
+% Consultant: & \mfkonzultant \\
+\end{tabular}
+
+\vfill
+
+
+\noindent \mfplacedate\\
+\mfauthor
+
+\cleardoublepage
+% --- Koniec titulnej strany
+
+
+% -------------------
+% --- Prehlásenie
+% -------------------
+{~}\vspace{12cm}
+
+\noindent
+\begin{minipage}{0.25\textwidth}~\end{minipage}
+\begin{minipage}{0.75\textwidth}
+I hereby declare that I have written this master thesis by myself, only with help of referenced literature and tools of artificial intelligence, under the careful guidance of my thesis supervisor.
+I have used artificial intelligence tools in accordance with legal regulations, academic guidelines for the use of artificial intelligence at Comenius University, ethical and moral principles, while maintaining academic integrity, and that their use is appropriately identified in the work.\\
+During the preparation of this work, the UI tools DeepL and Claude were used for the purpose of translation and stylistic edits and grammar checking. The author is responsible for the accuracy of the resulting text.
+\newline \newline
+\end{minipage}
+\vfill
+~ \hfill {\hbox to 6cm{\dotfill}} \\
+\mfplacedate \hfill \mfauthor
+
+\thispagestyle{empty}
+\newpage
+% --- koniec prehlasenia
+
+
+
+
+% -------------------
+% --- Poďakovanie
+% -------------------
+\chapter*{Acknowledgement}\label{chap:thank_you}
+
+
+\thispagestyle{empty}
+\newpage 
+% --- koniec podakovania
+
+
+% -------------------
+% --- Abstrakty
+% -------------------
+\chapter*{Abstract}\label{chap:abstract_en}
+\input{abstract_en}
+
+\paragraph*{Keywords: }  
+
+\thispagestyle{empty}
+
+\newpage 
+\thispagestyle{empty}
+\chapter*{Abstrakt}\label{chap:abstract_sk}
+\input{abstract_sk}
+
+\paragraph*{Kľúčové slová: }
+\thispagestyle{empty}
+\newpage
+
+% --- koniec abstraktov
+
+
+\tableofcontents
+\thispagestyle{empty}
+\newpage
+
+\mainmatter
+
+\input{introduction}
+\input{methods}
+\input{exploration}
+
+\appendix
+\newpage
+\renewcommand{\thepage}{}
+\nocite{*}
+\printbibliography
+\end{document}

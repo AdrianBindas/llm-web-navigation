@@ -1,0 +1,32 @@
+\chapter{Introduction}
+Agentic pipelines make use of large language models to interact with the environment via APIs or graphical interfaces. Pivot to agentic pipelines is however plagued by multiple problems. An error in a single step propagates further, requiring methodological regulations to be reliable and accurate. Complex pipelines are therefore facilitated by a large amount of computational power. While APIs are highly preferred as means for LLM agent interactions, they are not accessed easily, as the primary application consumer has until now had been a human utilizing a graphical interface.
+
+Agentic systems utilize grounding methods along with a planning model, usually an LLM, to plan and execute wide array of long-term tasks. An agent interacting with a web could book a ticket, buy a product from an e-shop, search for the most recent information on the news or access social media.~(\cite{zheng_gpt-4vision_2024}).
+
+\section{Planning model}
+The planning model decomposes user instruction into atomic steps and adapts to changes in the environment. The recent advances introduce a reflection that helps the agent recover from failures, encourage short-term learning and avoid hallucinations. Summarization serves to distill information from each step into comprehensible output.~(\cite{guo_opagent_2026} )
+
+\section{Grounding method}
+The LLMs are inherently based on natural language concepts. The agentic process requires the system to operate within the constraints of the environment and map the the fuzzy natural language to specific elements or executable actions. Such mapping requires environmental grounding - the linking of concepts to context.~(\cite{chandu-etal-2021-grounding})
+
+\textcite{zheng_gpt-4vision_2024} show that multimodal GPT-4V as a planner is able to execute wide range of tasks across multiple domains given a hypothetical "oracle" UI grounding method. The "oracle" is approximated by human annotators who identify and ground the model's intentions. Along the grounding method an in-context examples were provided. This approach achieves up to 65\% step accuracy utilizing cross-website in-context examples. In comparison, a multimodal grounding method \texttt{SeeAct}, based on the works of \textcite{deng_mind2web_2023}, achieves 32.7\% accuracy. This experiment highlights the importance of grounding in web agents.
+
+In the case of web navigation, the grounding is applied in two interconnected layers - UI grounding and action grounding. The LLM is contextualized within the environment composed of elements such as sections, headers, paragraphs or buttons. Each of those elements carries an information about the environment and acts as context for the concepts LLM operates with. The contextualized actions provide available operations within environment that can be taken at each step.~(\cite{deng_mind2web_2023})
+
+\section{Previous works}
+One of the first specialized approaches to GUI grounding, \texttt{MindAct}, entails filtering the elements of the web page using smaller language model. Elements are scored based on semantic similarity using an encoder-only model. The top-\textit{k} elements with the highest scores are provided to the LLM as a multi-choice question answering problem. The elements are clustered into smaller subsets which are fed into the LLM along with a "None" option, one subset at a time. If the LLM selects multiple elements, new subsets are created out of the selected elements. The process repeats until the last element remains or LLM chooses "None" for all subsets.~(\cite{deng_mind2web_2023})
+
+Aiming to generalize across multiple platforms such as Windows applications, websites and mobile devices, the agentic workflows pivot to using purely visual information - screenshots - for UI grounding. In \texttt{UGround} the LLM operates on pixel-level actions that are contextualized using the grounding model. The model is based on LLaVA-1.5 but during instruction post-training uses the \texttt{AnyRes} technique to allow for variable image resolution on input. Then the model is trained on a synthetic dataset of 9M web elements.~(\cite{gou_navigating_2025})
+
+\section{Problems of agentic workflows}
+While the \texttt{UGround} is able to complete array of tasks across multiple domains, as outlined in \textcite{xue_illusion_2025}, the development in the field of agents as a whole faces multiple issues.
+Advances are usually presented in the context of various benchmarks, which are usually based on task accuracy. This does not represent the usefulness of the grounding method in practice as the task grounding may fail multiple times while the task as a whole is ultimately successful.
+Existing methods are still distant from being useful on local devices as benchmarks do not prioritize or report the number of steps and time taken needed to accomplish the tasks. Many models are not optimized to fit on commercial devices.
+Moreover, benchmarks are skewed and do not capture the whole dynamics of the web environment, focusing mostly on e-commerce or booking services. Large amount of traffic is concentrated on dynamic websites like social media and text heavy platforms such as news or forums.
+
+\section{Thesis goals}
+We make case for an approach to navigating a web browser application, that manages to address multiple issues while utilizing already existing graphical interface in a low-cost manner. Such approach is formulated into multiple tasks:
+\begin{enumerate}
+    \item Explore and extend web agent benchmarks with performance metrics from existing methods. Diversify benchmarks with samples from different domains.
+    \item Design and implement more efficient approach to multimodal environment representation in the context of web agents. Verify the novel approach on existing benchmarks.
+\end{enumerate}

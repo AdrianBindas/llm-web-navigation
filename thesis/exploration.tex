@@ -1,0 +1,60 @@
+\newcommand{\cmark}{\ding{51}}
+\newcommand{\xmark}{\ding{55}}
+
+
+\chapter{Exploration of existing approaches}
+\begin{itemize}
+    \item \textcite{prabhu2025waltwebagentslearn} (text) \textbf{WALT} Grounding by generating and iterating tools.
+    \item \textcite{venus15} (visual, text) \textbf{UI-Venus 1.5} An end-to-end agentic framework including dense models and MoE. Trained using reinforcement learning.
+    \item \textcite{wang_colorbrowseragent_2026} (visual, text) \textbf{ColorBrowserAgent} A framework helping long-horizon stability of an LLM Agent. Human in the loop, comprehensive prompt engineering.
+    \item \textcite{guo_opagent_2026} (visual, text) \textbf{OpAgent} A method for comprehensive web navigation, using planning, grounding, reflecting and summarizing. For grounding a fine-tuned Qwen2.5-VL-7B is used.
+    \item \textcite{xie_scaling_2025} (benchmark, dataset) \textbf{OSWorld-G} Benchmark for grounding and interacting with operating system, applications, web... Creates a \textbf{JEDI} dataset for grounding that is used to fine-tune multiple multimodal LLMs.
+    \item \textcite{gou_navigating_2025} (visual, dataset) \textbf{UGround} Purely visual model based on LLaVA for grounding UI on multiple platforms and applications. Dataset containing 10M GUI elements over 1.3M screenshots. Utilizes \textbf{SeeAct-V} (visual-only adaptation of SeeAct framework).
+    \item \textcite{krupp_quantifying_2025} (survey, benchmark) Very nice survey of web agents and their benchmarks, identifying lack of comparability and high computational efficiency.
+    \item \textcite{yang_aria-ui_2025} (visual) \textbf{Aria-UI} Trained grounding mixture-of-expert model on web, desktop and mobile environments. Visual-only, using large amount of data from Common Crawl collection and LLM based annotations, with visual, positional and functional captioning.
+    \item \textcite{xue_illusion_2025} (survey, benchmark) \textbf{Online-Mind2Web} benchmark for web agents and \textbf{WebJudge} LLM-as-a-judge for an automatic evaluation of web agent tasks.
+    \item \textcite{verma_adaptagent_2025} (visual, text) \textbf{AdaptAgent} A framework with few-shot human demonstrations, uses SeeAct prompt in combination with proprietary model GPT-4o and open-weights model CogAgent. Uses meta-training instead of fine-tuning to improve model performance. Benchmarked on Mind2Web and VisualWebArena.
+    \item \textcite{song_bearcubs_2025} (benchmark) Benchmark \textbf{BearCubs} with text-based and multimodal complex interactions.
+    \item \textcite{nguyen_gui_2025} (survey) 2024 Survey of web agents, benchmarks, evaluation metrics.
+    \item \textcite{erdogan_plan-and-act_2025} (text, visual) \textbf{Plan-And-Act} splits into planner and executor, executor grounds GUI, is implemented by a LLaMA-3.3-70B-Instruct finetuned on synthetic data.
+    \item \textcite{zheng_gpt-4vision_2024} (text, visual) \textbf{SeeAct} Explores grounding via element attributes (generating detailed attribute closest to the target element followed by heuristic search in HTML), textual choices (rank and choose top-k candidates which are presented as a multi-choice question), image annotations (overlay a bounding box for each candidate element selected by the ranker), and a "manual" oracle action grounding (all details to identify elements are in the action description). The oracle action grounding is deemed as the best, textual choice grounding using GPT-4V is ranked as second.
+    \item \textcite{zhang_you_2024} (visual) \textbf{Auto-GUI} Encoder for screenshots combined with action history fed into LLM.
+    \item \textcite{xu_aguvis_2024} (visual) \textbf{Aguvis-7B} Custom model trained on screenshots. Based on Qwen2-VL with 2D-RoPE embeddings.
+    \item \textcite{tao_webwise_2024} (text) \textbf{WebWISE} Using filtered DOM tree as an LLM input.
+    \item \textcite{lutz_wilbur_2024} (text) \textbf{WILBUR} In context demonstration generation and retrieval.
+    \item \textcite{lu_omniparser_2024} (text, visual) \textbf{Omniparser} Has separate model to detect interactable elements using Set-of-Mark and OCR model to detect text. An image with bounding boxes with box description fed into LLM.
+    \item \textcite{he_webvoyager_2024} (visual) \textbf{WebVoyager} Uses Set-of-Mark to mark interactable elements, runs VLLM (Claude/GPT-4o) on the resulting image. Evaluated automatically using GPT-4V and on benchmarks GAIA and SeeAct.
+    \item \textcite{cheng_seeclick_2024} (visual, benchmark) \textbf{Seeclick} Android and web navigation using custom model trained on UI grounding data. Introduces grounding benchmark \textbf{ScreenSpot}.
+    \item \textcite{furuta_multimodal_2023} (text, visual) \textbf{WebGUM} Encoder-decoder processing screenshots, instructions and HTML. ImageNet-21K for vision transformer. Evaluated on MiniWoB++ and WebShop benchmarks.
+    \item \textcite{deng_mind2web_2023} (text, dataset) \textbf{Mind2Web} dataset for evaluating web agents. \textbf{MindAct} a small model for candidate generation from elements present on the webpage, selection using large LLM to predict the final action.
+\end{itemize}
+
+\section{Comparison of UI Grounding methods}
+
+\begin{table}[h!]
+    \centering
+    \begin{tabular}{c|c|c|c}
+         \textbf{Method} & \textbf{Text} & \textbf{Vision} & \textbf{Approach} \\
+         \hline \hline
+         MindAct & \xmark & \cmark & DeBERTa to choose top-k candidates $\xrightarrow{}$ multi-choice \\
+         $\text{SeeAct}_\text{Choice}$ & \cmark & \cmark & multimodal MindAct \\
+         $\text{SeeAct}_\text{Annotation}$ & \cmark & \cmark & Set-of-Mark (mark interactable elements) \\
+         OpAgent & \cmark & \cmark & finetuned Qwen2.5-VL-7B \\
+         UGround & \xmark & \cmark & custom LLaVA model \\
+         Aria-UI & \xmark & \cmark & 25B visual mixture-of-expert grounding model \\
+         AdaptAgent & \cmark & \cmark & few-shot demonstrations or meta-learning \\
+         Plan-And-Act & \cmark & \cmark & finetuned LLaMA-3.3-70B-Instruct \\
+         Auto-GUI & \xmark & \cmark & visual encoder \\
+         Aguvis-7B & \xmark & \cmark & custom visual model \\
+         WebWISE & \cmark & \xmark & filtered DOM \\
+         WILBUR & \cmark & \xmark & In context examples \\
+         Omniparser & \cmark & \cmark & visual model for Set-of-Mark + OCR \\
+         WebVoyager & \xmark & \cmark & Set-of-Mark using GPT-4V-ACT \\
+         Seeclick & \xmark & \cmark & custom visual model \\
+         WebGUM & \cmark & \cmark & encoder-decoder, based on ImageNet-21K \\
+         UI-Venus & \xmark & \cmark & MoE model trained using reinforcement learning \\
+         WALT & \cmark & \xmark & Generating and iterating tools \\
+
+    \end{tabular}
+    \label{tab:placeholder}
+\end{table}

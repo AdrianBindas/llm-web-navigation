@@ -1,0 +1,54 @@
+\chapter{Methodology}\label{chap:method}
+We present approach to an effective grounding during LLM based browser automation. This method operates on a DOM tree and screenshot of a rendered website and evaluates a user prompt. Based on natural language instructions the method determines an appropriate action and a grounded element. As an example, the instruction "Open shopping cart" evaluates into "action: click" and "element id: 14", where element with ID 14 maps into a clickable icon that opens a shopping cart menu; or instruction "Scroll video" evaluates into "action: scroll from top" and "element id: 1", where element with ID 1 maps into a video reel. The output is designed to be easily parsed by any browser automation tool such as Selenium or Playwright.
+
+Our method is separated into two steps. In accordance with \textcite{deng_mind2web_2023}, the steps are referred to as \textit{Candidate Generation} and \textit{Action Prediction}. The former operates on multimodal representation of a website, namely textual and visual representation. The interleaved representations are pruned and elements that convey the most information are selected. These representative elements, called candidates, are along with their position processed in the \textit{Action Prediction} step. The candidates are embedded with their position, either in text-first approach or image-first approach. Candidates are processed by a large language model to determine the appropriate action and element from the pool of candidates in a multi-choice manner.
+
+\section{Candidate Generation}\label{section:candidategen}
+During the first step, the website is transformed, aiming to reduce the amount of data, while preserving the information contained in those data. This \textit{Candidate Generation} process is essential due to the large amount of data representing each website and facilitates more advanced methods that would otherwise be too expensive to use.
+
+\subsection{Multimodal input data}\label{subsection:input}
+The website environment is represented using multimodal data comprising textual and visual representations.
+The \textbf{textual representation} is naturally available from browser as a Document Model Object (DOM) where each node represents a rendered element. While the HTML contains initial structure, DOM is more suitable as it describes current state of the document. These data are relatively inexpensive to obtain but their hierarchical structure is first and foremost intended for a compiler and does not convey a semantic representation. For example, elements that are grouped together in a single section might be rendered at different location or be absent entirely based on the size of a display, type of device or a JavaScript function call. Large portions of the data consist of element attributes, CSS styles or JavaScript snippets, that are many times difficult to follow or do not convey a meaningful information. However, all textual representations depend on correct coding practices and are unable to capture images or videos embedded in the website.
+
+The \textbf{visual representation}, i.e., screenshot of the website, is intended for a~human audience and therefore should naturally aim to capture the semantics of the website. This representation conveys spatial relations between elements on a two-dimensional plane instead of a hierarchical tree. The downside of the visual approach is its cost, processing a high fidelity screenshot requires substantially more resources than a structured DOM. 
+
+Interwoven multimodal data provide ability to process text elements and estimate their importance in a low-cost manner, encompass the semantics of the environment and relate elements rendered adjacently.
+
+\subsection{Element pruning}\label{subsection:pruning}
+The rendered website usually contains large amount of elements. It is computationally ineffective to process this data using an LLM directly. Therefore we remove nodes with low informational value:
+\begin{enumerate}
+    \item DOM is pruned of all metadata nodes such as \texttt{head} or \texttt{metadata}
+    \item Node attributes with values that are not meaningful are removed
+    \item Nodes without any attributes are removed
+\end{enumerate}
+
+\subsection{Inter-modal mapping}\label{subsection:mapping}
+The DOM nodes include information about the element's position on a rendered viewscreen. This information is used to extract a slice from the screenshot that matches the element rendered from the attribute. The mapping produces a set of elements with information about their DOM attributes and rendered appearance. The mapping may cause the duplication of information therefore if the text takes up at least XY\% of the element, the visual information is removed.
+
+\subsection{Visual-based element detection}\label{subsection:detection}
+To complement the mapped element set, additional detection is needed. For example, more complex interactive elements like interactive maps or captchas are not represented by a DOM tree and require further transformation. A lightweight visual model, e.g. of YOLO family, finetuned to detect UI elements is applied to a screenshot. Resulting bounding boxes are either merged with existing elements or used to create new elements.
+
+\section{Intermediate Candidate Elements}\label{section:candidates}
+In the previous step we applied both text-based and vision-based recognition to detect elements on the website. We also removed elements deemed as meaningless. The resulting pool of elements, also called candidates, serves as a sparse representation of the website. Each candidate comprises textual and/or visual representation along with its position on two dimensional grid. The visual features are computationally more expensive to process compared to textual by a multimodal LLM. Therefore we aimed to maximize the portion of textual data in comparison to images. 
+The size of the set of candidates can range from few dozens to hundreds of candidates, scaling based on the complexity of the website. The segmentation of the website helps LLM understand the structure of the environment and decrease computational requirements while preserving the information value.
+
+\section{Action Prediction}\label{section:prediction}
+The role of candidate elements in action prediction is twofold. First, the candidates represent the website in a structured manner. Second, individual candidates can be interacted with, grounding the model during the navigation step. Specifically, the task is formulated as a multi-choice decision between the candidates given a natural language instruction. A multimodal LLM is used to select a candidate from the pool along with a specific action.
+Before the candidates are passed into the model, the candidates undergo transformation, where their position is embedded. Transformation helps us represent the candidates' positions in such manner that is more natural to the multimodal LLMs. Our approach proposes two different transformation methods:
+
+\subsection{Text-first positional transformation}
+Transformation leverages that markup language documents (such as HTML) are included in training data of majority of large language models. The pool of candidates is parsed into a simplified HTML data. This data are structured hierarchically from textual representations of the candidates. Visual representations are marked with a unique identified which is included in the textual representation, linking visual and textual representations of the same element together. Simplified HTML and visual representations are processed by the multimodal LLM along with the instruction.
+
+\subsection{Image-first positional transformation}
+Transformation employs positional embedding that embeds two dimensional position directly into candidates' token representation. The embedding is based on 3D-RoPE \textcite{ma20243drope} that facilitates positional embedding of text on a two dimensional grid representing the website. This provides a natural way to represent positions and proximity between elements. The disadvantage is the transformation requires a fine-tuning that adapts decoder to the introduced embeddings.
+
+\section{LLM-based Navigation}\label{section:navigation}
+The multi-modal LLM is instructed by a prompt. The prompt formulates the navigation as a multi-choice problem, given available actions and list of transformed candidates. Model is directed to select a specific action that should be executed to complete the user's request. Specific descriptions of available actions are included:
+\begin{itemize}
+    \item Actions \texttt{left click} and \texttt{right click} should include a single element where the click will be executed.
+    \item Action \texttt{scroll} should provide an element which will be scrolled, direction of the scroll and length of the scroll.
+    \item Action \texttt{drag} should include two elements - origin position and goal position of the drag.
+    \item Action \texttt{type} should include an element which will be focused and a text to be typed.
+\end{itemize}
+
+The model is then supplied with the user instruction and transformed candidates. The instructions are limited to be completed in a single step. The output of the model is then parsed as the action to be executed in the browser.
