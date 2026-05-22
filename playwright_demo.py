@@ -2,6 +2,10 @@ from playwright.sync_api import sync_playwright
 from playwright_stealth import Stealth
 from bs4 import BeautifulSoup, Comment
 
+import logging
+
+logger = logging.Logger("__name__")
+
 # Tags that should be stripped
 STRIP_TAGS = {
     "script", "style", "link", "meta", "noscript", "head",
@@ -17,20 +21,19 @@ KEEP_ATTRS = {
 }
 
 
-def apply_stealth(page):
-    Stealth().apply_stealth_sync(page)
-
 def get_visible_with_bounds(snapshot):
+    """Extract nodes with positive width and height."""
     doc = snapshot["documents"][0]
     layout = doc.get("layout", {})
     node_indices = layout.get("nodeIndex", [])
     bounds = layout.get("bounds", [])
  
     visible = {}
+    if len(bounds) != len(node_indices):
+        logger.warn("Node bounding might not have been determined correctly.")
     for i, node_id in enumerate(node_indices):
-        if i >= len(bounds):
-            continue
         x, y, w, h = bounds[i]
+        # TODO: Filter out negative x,y
         if w > 0 and h > 0:
             visible[node_id] = (x, y, w, h)
  
@@ -40,7 +43,6 @@ def get_visible_with_bounds(snapshot):
 def snapshot_to_html_with_layout(snapshot):
     doc = snapshot["documents"][0]
     nodes = doc["nodes"]
-    layout = doc.get("layout", {})
     strings = snapshot["strings"]
  
     node_names = nodes["nodeName"]
@@ -55,22 +57,19 @@ def snapshot_to_html_with_layout(snapshot):
  
     for i, parent in enumerate(parents):
         if parent == -1:
+            logger.info("Assigning root to id -1")
             root = i
         else:
             children[parent].append(i)
  
     if root is None:
+        logger.info("Assigning root to id 0")
         root = 0
- 
-    layout_map = {}
+
     visible_map = get_visible_with_bounds(snapshot)
- 
-    if layout:
-        for i, node_idx in enumerate(layout.get("nodeIndex", [])):
-            bounds = layout.get("bounds", [])
-            if i < len(bounds):
-                layout_map[node_idx] = bounds[i]
- 
+
+    # TODO: Traverse layout further for text.
+  
     def get_string(idx):
         return "" if idx == -1 else strings[idx]
  
@@ -87,7 +86,7 @@ def snapshot_to_html_with_layout(snapshot):
         if node_id in visible_map:
             x, y, w, h = visible_map[node_id]
             parts.append(f'data-bounds="{x:.0f},{y:.0f},{w:.0f},{h:.0f}"')
-        elif node_id in layout_map:
+        else:
             parts.append('data-visible="false"')
  
         return (" " + " ".join(parts)) if parts else ""
@@ -96,16 +95,14 @@ def snapshot_to_html_with_layout(snapshot):
         name_idx = node_names[node_id]
         node_type = node_types[node_id]
         value = get_string(node_values[node_id])
+
+        # TODO: Include ATTRIBUTE_NODE for backward compatibility
  
         # TEXT_NODE — keep non-empty text
         if node_type == 3:
             text = value.strip()
             return text if text else ""
- 
-        # COMMENT_NODE — drop
-        if node_type == 8:
-            return ""
- 
+  
         # DOCUMENT_NODE
         if node_type == 9:
             return "".join(build(child) for child in children[node_id])
@@ -119,8 +116,7 @@ def snapshot_to_html_with_layout(snapshot):
                 return ""
  
             is_visible = node_id in visible_map
-            has_layout = node_id in layout_map
-            if has_layout and not is_visible:
+            if not is_visible:
                 inner = "".join(build(child) for child in children[node_id])
                 return inner if inner.strip() else ""
  
@@ -174,7 +170,7 @@ def main():
  
         page = context.new_page()
  
-        apply_stealth(page)
+        Stealth().apply_stealth_sync(page)
  
         page.goto("https://tiktok.com/", wait_until="networkidle", timeout=60000)
   
