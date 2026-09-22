@@ -1,7 +1,8 @@
-from ultralytics import YOLO
-from PIL import Image
-from huggingface_hub import hf_hub_download
 from pathlib import Path
+
+from huggingface_hub import hf_hub_download
+from PIL import Image
+from ultralytics import YOLO
 
 REPO_ID = "Salesforce/GPA-GUI-Detector"
 FILENAME = "model.pt"

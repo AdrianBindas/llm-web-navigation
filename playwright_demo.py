@@ -1,11 +1,12 @@
-from playwright.sync_api import sync_playwright
-from playwright_stealth import Stealth
-from bs4 import BeautifulSoup, Comment
-from PIL import Image, ImageDraw
 import io
 import logging
 
-logger = logging.Logger("__name__")
+from bs4 import BeautifulSoup, Comment
+from PIL import Image, ImageDraw
+from playwright.sync_api import sync_playwright
+from playwright_stealth import Stealth
+
+logger = logging.getLogger("__name__")
 
 # Tags that should be stripped
 STRIP_TAGS = {
@@ -127,9 +128,7 @@ def is_visible(node_id, bounds_map, computed_styles_map, attributes, strings):
         return False
     if is_style_hidden(node_id, computed_styles_map):
         return False
-    if is_attr_hidden(node_id, attributes, strings):
-        return False
-    return True
+    return not is_attr_hidden(node_id, attributes, strings)
 
 
 def get_visible_with_bounds(snapshot):

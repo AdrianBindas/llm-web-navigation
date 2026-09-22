@@ -29,3 +29,8 @@ torch = [
 torchvision = [
   { index = "pytorch-cu130", marker = "sys_platform == 'linux' or sys_platform == 'win32'" },
 ]
+
+[dependency-groups]
+dev = [
+    "ruff>=0.16.8",
+]

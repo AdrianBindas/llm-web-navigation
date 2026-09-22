@@ -1,8 +1,8 @@
 from __future__ import annotations
 
 import torch
-from transformers import AutoModelForImageTextToText, AutoProcessor, GenerationConfig
 from qwen_vl_utils import process_vision_info
+from transformers import AutoModelForImageTextToText, AutoProcessor, GenerationConfig
 
 SCREENSHOT_PATH = "images/screenshot_booking.png"
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -93,12 +93,9 @@ def run(
 
     messages = build_messages(SCREENSHOT_PATH)
 
-    try:
-        description = generate_reasoning(
+    description = generate_reasoning(
             model, processor, messages, max_new_tokens, temperature, top_p
         )
-    except Exception as exc:
-        description = f"ERROR: {exc}"
     print(description)
 
 
