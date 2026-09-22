@@ -8,6 +8,9 @@ from playwright_stealth import Stealth
 
 logger = logging.getLogger("__name__")
 
+# WEBSITE_URL = "https://tiktok.com/"
+WEBSITE_URL = "https://www.bilibili.com/"
+
 # Tags that should be stripped
 STRIP_TAGS = {
     "script", "style", "link", "meta", "noscript", "head",
@@ -24,9 +27,33 @@ KEEP_ATTRS = {
 
 VIEWPORT = {"width": 1280, "height": 800}
 
-# Computed style indices within the snapshot's computedStyles array.
-# Positions correspond to the order in COMPUTED_STYLE_KEYS below.
-COMPUTED_STYLE_KEYS = ["display", "visibility", "opacity"]
+# Computed styles requested from the snapshot. Order here must match the order
+# passed to DOMSnapshot.captureSnapshot; the map is resolved by key name so the
+# list can be extended freely.
+COMPUTED_STYLE_KEYS = ["display", "visibility", "opacity", "cursor", "background-image"]
+
+# Maximum length of a kept attribute value; longer values are truncated to keep
+# script-in-attribute noise out of the dump.
+MAX_ATTR_LEN = 120
+
+# Tags that are inherently interactible.
+INTERACTIVE_TAGS = {
+    "a", "button", "input", "select", "textarea",
+    "option", "label", "summary", "details",
+    "form", "fieldset",
+}
+
+# ARIA roles that mark an element as interactible.
+INTERACTIVE_ROLES = {
+    "button", "link", "checkbox", "radio", "tab", "menuitem",
+    "menuitemcheckbox", "menuitemradio", "switch", "option",
+    "combobox", "slider", "searchbox", "textbox",
+    "search", "spinbutton", "menu", "menubar", "listbox",
+    "tablist", "treeitem",
+}
+
+# Tags whose presence counts as direct visual content.
+MEDIA_TAGS = {"img", "video", "canvas", "audio"}
 
 
 def is_out_of_viewport(bounds, viewport=VIEWPORT):
@@ -46,15 +73,14 @@ def is_style_hidden(node_id, computed_styles_map):
     Checks display:none, visibility:hidden/collapse, opacity:0.
     """
     styles = computed_styles_map.get(node_id)
-    if styles is None:
+    if not styles:
         return False
-    display, visibility, opacity = styles
-    if display == "none":
+    if styles.get("display") == "none":
         return True
-    if visibility in ("hidden", "collapse"):
+    if styles.get("visibility") in ("hidden", "collapse"):
         return True
     try:
-        if float(opacity) == 0.0:
+        if float(styles.get("opacity", "1")) == 0.0:
             return True
     except (ValueError, TypeError):
         pass
@@ -76,37 +102,61 @@ def is_attr_hidden(node_id, attributes, strings):
     return False
 
 
+def get_attr_value(node_id, attributes, strings, wanted):
+    """Return the string value of a node's attribute, or '' if absent."""
+    attr_list = attributes[node_id] if attributes else []
+    for i in range(0, len(attr_list) - 1, 2):
+        if strings[attr_list[i]] == wanted:
+            return strings[attr_list[i + 1]]
+    return ""
+
+
+def is_interactible(node_id, tag_name, computed_styles_map, attributes, strings):
+    """
+    Return True if the element is interactible: its tag is in INTERACTIVE_TAGS,
+    its role attribute is in INTERACTIVE_ROLES, or its computed cursor is pointer.
+    """
+    if tag_name in INTERACTIVE_TAGS:
+        return True
+    role = get_attr_value(node_id, attributes, strings, "role").lower()
+    if role in INTERACTIVE_ROLES:
+        return True
+    styles = computed_styles_map.get(node_id)
+    return bool(styles) and styles.get("cursor") == "pointer"
+
+
 def build_computed_styles_map(snapshot):
     """
-    Build a dict mapping node_id → (display, visibility, opacity) strings
-    from the CDP DOMSnapshot computedStyles data.
-    Returns an empty dict if the snapshot doesn't include style data.
+    Build a dict mapping node_id -> {style_key: value} from the snapshot's layout
+    styles. Keys are the entries of COMPUTED_STYLE_KEYS. The style values live in
+    layout.styles, a parallel array to layout.nodeIndex.
+    Returns an empty dict if the snapshot has no layout style data.
     """
     doc = snapshot["documents"][0]
-    nodes = doc["nodes"]
     strings = snapshot["strings"]
 
-    style_index = nodes.get("computedStyles")   # per-node list of style-value pairs
     layout = doc.get("layout", {})
     layout_node_indices = layout.get("nodeIndex", [])
     layout_styles = layout.get("styles", [])    # parallel array to nodeIndex
 
-    if not style_index or not layout_styles:
+    if not layout_styles:
         return {}
 
-    # Build a fast lookup: node_id → style value array index
-    node_to_layout = {node_id: i for i, node_id in enumerate(layout_node_indices)}
-
     result = {}
-    # COMPUTED_STYLE_KEYS order must match the order passed to captureSnapshot
     key_count = len(COMPUTED_STYLE_KEYS)
 
-    for node_id, layout_idx in node_to_layout.items():
-        style_vals = layout_styles[layout_idx]  # list of value-string indices
+    # layout.styles[i] holds the style values for the node at nodeIndex[i].
+    for i, node_id in enumerate(layout_node_indices):
+        if i >= len(layout_styles):
+            break
+        style_vals = layout_styles[i]  # list of value-string indices
         if len(style_vals) < key_count:
             continue
-        resolved = tuple(strings[v] if v != -1 else "" for v in style_vals[:key_count])
-        result[node_id] = resolved  # (display, visibility, opacity)
+        resolved = {
+            COMPUTED_STYLE_KEYS[j]: (strings[v] if v != -1 else "")
+            for j, v in enumerate(style_vals[:key_count])
+        }
+        result[node_id] = resolved
 
     return result
 
@@ -179,20 +229,58 @@ def snapshot_to_html_with_layout(snapshot):
     visible_map = get_visible_with_bounds(snapshot)
     computed_styles_map = build_computed_styles_map(snapshot)
 
+    def tag_of(node_id):
+        return get_string(node_names[node_id]).lower()
+
+    def has_direct_content(node_id, tag_name):
+        """
+        True if the element directly bears content: it is a media tag, has a
+        direct media child, has a direct non-empty text node child, or renders a
+        CSS background-image.
+        """
+        if tag_name in MEDIA_TAGS:
+            return True
+        styles = computed_styles_map.get(node_id)
+        if styles:
+            bg = styles.get("background-image", "")
+            if bg and bg != "none":
+                return True
+        for child in children[node_id]:
+            ctype = node_types[child]
+            if ctype == 3 and get_string(node_values[child]).strip():
+                return True
+            if ctype == 1 and tag_of(child) in MEDIA_TAGS:
+                return True
+        return False
+
+    def should_keep(node_id, tag_name):
+        """Keep an element only if it is interactible or bears direct content."""
+        return (
+            is_interactible(node_id, tag_name, computed_styles_map, attributes, strings)
+            or has_direct_content(node_id, tag_name)
+        )
+
     # TODO: Traverse layout further for text.
   
     def get_string(idx):
         return "" if idx == -1 else strings[idx]
  
+    def clean_attr_value(val):
+        """Collapse whitespace/newlines and clamp to MAX_ATTR_LEN characters."""
+        val = " ".join(val.split())
+        if len(val) > MAX_ATTR_LEN:
+            val = val[:MAX_ATTR_LEN] + "..."
+        return val.replace('"', "&quot;")
+
     def get_attrs(node_id):
         attr_list = attributes[node_id] if attributes else []
         parts = []
- 
+
         for i in range(0, len(attr_list) - 1, 2):
             key = strings[attr_list[i]]
             val = strings[attr_list[i + 1]]
             if key in KEEP_ATTRS:
-                parts.append(f'{key}="{val}"')
+                parts.append(f'{key}="{clean_attr_value(val)}"')
  
         if is_visible(node_id, visible_map, computed_styles_map, attributes, strings):
             x, y, w, h = visible_map[node_id]
@@ -228,10 +316,15 @@ def snapshot_to_html_with_layout(snapshot):
  
             is_visible_ = is_visible(node_id, visible_map, computed_styles_map, attributes, strings)
             inner = "".join(build(child) for child in children[node_id])
-            
+
             if not is_visible_:
                 return inner if inner.strip() else ""
- 
+
+            # Unwrap visible elements that are neither interactible nor bear
+            # direct content: drop the tag and promote qualifying descendants.
+            if not should_keep(node_id, name):
+                return inner if inner.strip() else ""
+
             attrs = get_attrs(node_id)
             if not inner.strip() and not attrs.strip():
                 return ""
@@ -249,13 +342,16 @@ def snapshot_to_html_with_layout(snapshot):
 def clean_soup(soup):
     for comment in soup.find_all(string=lambda t: isinstance(t, Comment)):
         comment.extract()
- 
+
+    # A tag survives if it has text, a meaningful attribute, or a bounds box
+    # (bounds mark elements the build step already decided to keep).
     for tag in soup.find_all(True):
         has_text = bool(tag.get_text(strip=True))
         has_attr = any(a in (tag.attrs or {}) for a in KEEP_ATTRS)
-        if not has_text and not has_attr:
+        has_bounds = "data-bounds" in (tag.attrs or {})
+        if not has_text and not has_attr and not has_bounds:
             tag.decompose()
- 
+
     return soup
  
  
@@ -282,7 +378,7 @@ def main():
  
         Stealth().apply_stealth_sync(page)
  
-        page.goto("https://tiktok.com/", wait_until="networkidle", timeout=60000)
+        page.goto(WEBSITE_URL, wait_until="networkidle", timeout=60000)
   
         screenshot_bytes = page.screenshot(full_page=False)
  
@@ -294,8 +390,8 @@ def main():
         html = snapshot_to_html_with_layout(snapshot)
         soup = BeautifulSoup(html, "html.parser")
         soup = clean_soup(soup)
-
-        print(soup.prettify())
+        with open("playwright_soup.txt", 'w', encoding='utf-8') as f:
+            print(soup.prettify(), file=f)
  
         boxes = extract_bounds(soup)
         print(f"Found {len(boxes)} bounding boxes.")
