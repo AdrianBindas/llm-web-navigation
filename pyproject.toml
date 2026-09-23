@@ -17,6 +17,16 @@ dependencies = [
     "qwen-vl-utils>=0.0.14",
 ]
 
+[project.scripts]
+page-extractor = "page_extractor_demo:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/page_extractor"]
+
 [[tool.uv.index]]
 name = "pytorch-cu130"
 url = "https://download.pytorch.org/whl/cu130"
@@ -32,5 +42,6 @@ torchvision = [
 
 [dependency-groups]
 dev = [
+    "pytest>=9.1.1",
     "ruff>=0.16.8",
 ]
