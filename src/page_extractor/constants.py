@@ -46,7 +46,7 @@ STRIP_TAGS = {
 KEEP_ATTRS = {
     "href", "src", "alt", "title", "aria-label", "role",
     "type", "name", "placeholder", "value", "action",
-    "data-visible", "data-bounds",
+    "data-visible", "data-bounds", "data-interactible",
 }
 
 # Tags that are inherently interactible.

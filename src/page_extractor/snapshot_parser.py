@@ -31,6 +31,7 @@ class SnapshotParser:
         self.node_values = nodes["nodeValue"]
         self.parents = nodes["parentIndex"]
         self.attributes = nodes.get("attributes", [])
+        self.clickable_ids = self._build_clickable_ids(nodes)
 
         self.total_nodes = len(self.node_names)
         self.children, self.root = self._build_adjacency()
@@ -38,6 +39,20 @@ class SnapshotParser:
         self.styles_map = self._build_styles_map()
 
     # -- construction helpers --
+
+    @staticmethod
+    def _build_clickable_ids(nodes):
+        """
+        Node ids CDP flagged as having a click handler. 'isClickable' is a CDP
+        rare-boolean: {'index': [...]} listing clickable node indices. Returns an
+        empty set if absent.
+        """
+        clickable = nodes.get("isClickable")
+        if isinstance(clickable, dict):
+            return set(clickable.get("index", []))
+        if isinstance(clickable, list):
+            return {i for i, v in enumerate(clickable) if v}
+        return set()
 
     def _build_adjacency(self):
         children = [[] for _ in range(self.total_nodes)]
@@ -77,6 +92,10 @@ class SnapshotParser:
         node_indices = layout.get("nodeIndex", [])
         layout_styles = layout.get("styles", [])
         if not layout_styles:
+            logger.warning(
+                "Snapshot layout has no styles; computed-style signals "
+                "(visibility, cursor, background-image) will be unavailable."
+            )
             return {}
         keys = self.computed_style_keys
         key_count = len(keys)
@@ -110,6 +129,10 @@ class SnapshotParser:
     def styles_of(self, node_id):
         """Return the computed-style dict for a node, or {} if none."""
         return self.styles_map.get(node_id) or {}
+
+    def is_clickable(self, node_id):
+        """True if CDP flagged this node as having a click handler."""
+        return node_id in self.clickable_ids
 
     def iter_attrs(self, node_id):
         """Yield (key, value) pairs for a node's attributes."""

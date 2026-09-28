@@ -1,7 +1,7 @@
 from page_extractor import OutputConfig, PageExtractor
 
-WEBSITE_URL = "https://tiktok.com/"
-# WEBSITE_URL = "https://www.bilibili.com/"
+# WEBSITE_URL = "https://tiktok.com/"
+WEBSITE_URL = "https://www.bilibili.com/"
 
 
 def main():

@@ -50,7 +50,21 @@ class HtmlBuilder:
         node_type = p.type_of(node_id)
 
         if node_type == TEXT_NODE:
-            return p.text_of(node_id).strip()
+            text = p.text_of(node_id).strip()
+            if not text:
+                return ""
+            bounds = p.visible_map.get(node_id)
+            # Only emit text the browser actually laid out and painted (own box
+            # and visible), so positions match the screenshot. Drop text with no
+            # layout box or that is hidden.
+            if bounds is None or not p.is_visible(node_id):
+                return ""
+            safe = text.replace("<", "&lt;").replace(">", "&gt;")
+            x, y, w, h = bounds
+            return (
+                f'<span data-node-id="{node_id}" '
+                f'data-bounds="{x:.0f},{y:.0f},{w:.0f},{h:.0f}">{safe}</span>'
+            )
 
         if node_type == DOCUMENT_NODE:
             return "".join(self._build(c) for c in p.children[node_id])

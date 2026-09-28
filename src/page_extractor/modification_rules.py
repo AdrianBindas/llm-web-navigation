@@ -57,7 +57,14 @@ class UnwrapHidden(Rule):
     def __call__(self, soup, parser):
         for tag in soup.find_all(True):
             nid = node_id_of(tag)
-            if nid is not None and not parser.is_visible(nid):
+            if nid is None:
+                logger.warning(
+                    "UnwrapHidden: <%s> has no data-node-id; cannot check "
+                    "visibility, leaving it in place. Ensure attribute-"
+                    "restricting rules run after UnwrapHidden.", tag.name,
+                )
+                continue
+            if not parser.is_visible(nid):
                 tag.unwrap()
         return soup
 
@@ -91,7 +98,11 @@ class UnwrapUnkept(Rule):
         role = parser.get_attr(node_id, "role").lower()
         if role in self.interactive_roles:
             return True
-        return parser.styles_of(node_id).get("cursor") == "pointer"
+        if parser.styles_of(node_id).get("cursor") == "pointer":
+            return True
+        # CDP-detected click handler (catches JS-driven clickables that have no
+        # semantic tag, role, or cursor:pointer, e.g. Vue @click divs).
+        return parser.is_clickable(node_id)
 
     def has_direct_content(self, parser, node_id):
         tag = parser.tag_of(node_id)
@@ -112,6 +123,11 @@ class UnwrapUnkept(Rule):
         for tag in reversed(soup.find_all(True)):
             nid = node_id_of(tag)
             if nid is None:
+                logger.warning(
+                    "UnwrapUnkept: <%s> has no data-node-id; cannot check "
+                    "keep-worthiness, leaving it in place. Ensure attribute-"
+                    "restricting rules run after UnwrapUnkept.", tag.name,
+                )
                 continue
             if self.is_interactible(parser, nid) or self.has_direct_content(parser, nid):
                 continue
@@ -168,15 +184,173 @@ class CleanEmpty(Rule):
         return soup
 
 
-class StripInternalAttrs(Rule):
-    """Remove scaffolding attributes (data-node-id) left by the builder."""
+class CollapseWrappers(Rule):
+    """
+    Collapse redundant single-child wrapper nesting. A parent element is merged
+    into its only element child (the parent tag is dropped, the child kept) when
+    the parent adds nothing distinct: it has no direct text of its own and no
+    meaningful attributes beyond bounds/node-id.
 
-    def __init__(self, attrs=("data-node-id",)):
-        self.attrs = attrs
+    Interactible elements are never removed and their bounds never change: the
+    parent (the element that would be unwrapped) is only collapsed when it is
+    NOT interactible. A collapse therefore only ever discards a plain wrapper;
+    the surviving child keeps its own tag and its own bounds.
+    """
+
+    def __init__(self, keep_attrs=None):
+        self.keep_attrs = set(keep_attrs) if keep_attrs is not None else set(KEEP_ATTRS)
+        # Attributes that do not count as "meaningful" for the parent.
+        self._ignorable = {"data-bounds", "data-node-id"}
+        self._interactibility = UnwrapUnkept()
+
+    def _meaningful_attrs(self, tag):
+        return {
+            k for k in (tag.attrs or {})
+            if k not in self._ignorable and k in self.keep_attrs
+        }
+
+    def _is_interactible(self, tag, parser):
+        """
+        Whether the tag is interactible. Requires the builder's data-node-id to
+        be present; warns and treats the element as non-interactible if it is
+        missing (e.g. attributes were restricted before this rule ran).
+        """
+        nid = node_id_of(tag)
+        if nid is None:
+            logger.warning(
+                "CollapseWrappers: <%s> has no data-node-id; cannot check "
+                "interactibility. Ensure attribute-restricting rules run after "
+                "CollapseWrappers.", tag.name,
+            )
+            return False
+        return self._interactibility.is_interactible(parser, nid)
+
+    def _own_text(self, tag):
+        """Text that is a direct (non-element) child of tag."""
+        return "".join(
+            str(c) for c in tag.contents if isinstance(c, str)
+        ).strip()
+
+    def __call__(self, soup, parser):
+        changed = True
+        # Iterate to a fixed point so chains of length > 2 fully collapse.
+        while changed:
+            changed = False
+            for tag in soup.find_all(True):
+                if tag.parent is None:
+                    continue
+                child_elements = [c for c in tag.contents if getattr(c, "name", None)]
+                # Single element child, no direct text of the parent's own.
+                if len(child_elements) != 1 or self._own_text(tag):
+                    continue
+                # Parent must add nothing meaningful beyond bounds/node-id.
+                if self._meaningful_attrs(tag):
+                    continue
+                # Never remove an interactible element or alter its bounds: only
+                # a non-interactible parent (the tag being dropped) may collapse.
+                if self._is_interactible(tag, parser):
+                    continue
+                # Merge: keep the inner child (its own tag and bounds), drop the
+                # plain wrapper.
+                tag.unwrap()
+                changed = True
+                break
+        return soup
+
+
+class MarkInteractible(Rule):
+    """
+    Stamp data-interactible="true" on every element the interactibility
+    definition considers clickable (tag/role/cursor). Makes interactibility an
+    explicit, observable attribute so later rules and downstream consumers can
+    act on it. Requires the builder's data-node-id to still be present.
+    """
+
+    def __init__(self):
+        self._interactibility = UnwrapUnkept()
 
     def __call__(self, soup, parser):
         for tag in soup.find_all(True):
-            for a in self.attrs:
-                if a in (tag.attrs or {}):
-                    del tag.attrs[a]
+            nid = node_id_of(tag)
+            if nid is None:
+                logger.warning(
+                    "MarkInteractible: <%s> has no data-node-id; cannot check "
+                    "interactibility. Ensure attribute-restricting rules run "
+                    "after MarkInteractible.", tag.name,
+                )
+                continue
+            if self._interactibility.is_interactible(parser, nid):
+                tag["data-interactible"] = "true"
+        return soup
+
+
+class CompactInteractible(Rule):
+    """
+    Compact an interactible single-child wrapper into its child: unwrap the
+    interactible parent and move its data-interactible flag onto the surviving
+    child, which keeps its own (tighter) bounds. Reduces element count while
+    preserving that the region is interactible.
+
+    Runs after MarkInteractible (needs data-interactible present). Only compacts
+    when the parent adds nothing meaningful beyond bounds/node-id/interactible
+    and has no direct text.
+
+    compact_nested controls what happens when the single child is ITSELF
+    interactible:
+      - False (default): keep both. Two nested interactible elements may map to
+        different actions (e.g. hover vs click), so both are preserved.
+      - True: unwrap the parent anyway, keeping the (already interactible)
+        child. Useful to collapse the deep interactible chains that CSS
+        cursor:pointer inheritance produces, at the cost of merging the two
+        actions into the child's element/bounds.
+    """
+
+    def __init__(self, keep_attrs=None, compact_nested=False):
+        self.keep_attrs = set(keep_attrs) if keep_attrs is not None else set(KEEP_ATTRS)
+        self.compact_nested = compact_nested
+        self._ignorable = {"data-bounds", "data-node-id", "data-interactible"}
+
+    def _meaningful_attrs(self, tag):
+        return {
+            k for k in (tag.attrs or {})
+            if k not in self._ignorable and k in self.keep_attrs
+        }
+
+    def _own_text(self, tag):
+        return "".join(
+            str(c) for c in tag.contents if isinstance(c, str)
+        ).strip()
+
+    def __call__(self, soup, parser):
+        changed = True
+        while changed:
+            changed = False
+            for tag in soup.find_all(True):
+                if tag.parent is None:
+                    continue
+                # Only interactible wrappers are handled here.
+                if tag.get("data-interactible") != "true":
+                    continue
+                child_elements = [c for c in tag.contents if getattr(c, "name", None)]
+                if len(child_elements) != 1 or self._own_text(tag):
+                    continue
+                if self._meaningful_attrs(tag):
+                    continue
+                child = child_elements[0]
+                # When the child is itself interactible, keep both unless nested
+                # compaction is explicitly enabled (distinct actions such as
+                # hover vs click may otherwise be lost).
+                if child.get("data-interactible") == "true":
+                    if not self.compact_nested:
+                        continue
+                    # Child already carries the flag; just drop the wrapper.
+                    tag.unwrap()
+                    changed = True
+                    break
+                # Move the interactible flag down to the surviving child, which
+                # keeps its own (smaller) bounds; drop the wrapper.
+                child["data-interactible"] = "true"
+                tag.unwrap()
+                changed = True
+                break
         return soup

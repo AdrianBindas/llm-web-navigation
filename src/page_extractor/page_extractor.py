@@ -14,8 +14,10 @@ from .constants import (
 from .html_builder import HtmlBuilder
 from .modification_rules import (
     CleanEmpty,
+    CollapseWrappers,
+    CompactInteractible,
     KeepAttrs,
-    StripInternalAttrs,
+    MarkInteractible,
     StripTags,
     UnwrapHidden,
     UnwrapUnkept,
@@ -28,18 +30,22 @@ logger = logging.getLogger(__name__)
 def default_rules():
     """
     Build the default ordered rule list. Order matters: strip unwanted tags,
-    unwrap hidden, unwrap non-qualifying wrappers, restrict and truncate
-    attributes, drop leftover empties, then strip scaffolding. Each rule bakes
-    in its own default data sets; callers may reorder, remove, append, or
-    replace rules with custom-parameterized instances.
+    unwrap hidden, unwrap non-qualifying wrappers, collapse redundant wrappers,
+    drop leftover empties, then restrict/truncate attributes last. Structural
+    rules run while the builder's data-node-id scaffolding is still present;
+    KeepAttrs runs last and removes it (data-node-id is not in the keep set),
+    so no separate scaffolding-strip rule is needed. Each rule bakes in its own
+    default data sets; callers may reorder, remove, append, or replace rules.
     """
     return [
         StripTags(),
         UnwrapHidden(),
         UnwrapUnkept(),
-        KeepAttrs(),
+        MarkInteractible(),
+        CollapseWrappers(),
+        CompactInteractible(compact_nested=True),
         CleanEmpty(),
-        StripInternalAttrs(),
+        KeepAttrs(),
     ]
 
 
@@ -63,6 +69,7 @@ class OutputConfig:
     html_path: str = "playwright_soup.txt"
     unique_boxes: bool = True
     box_color: tuple = (0, 200, 80)
+    interactible_box_color: tuple = (170, 0, 220)
     annotated_path: str = "images/annotated_screenshot.png"
     output_dir: object = OUTPUT_DIR
 
@@ -93,7 +100,14 @@ class OutputWriter:
 
     def extract_boxes(self, soup):
         """Collect (x, y, w, h) int tuples from every data-bounds attribute."""
-        boxes = []
+        return [box for box, _ in self.extract_boxes_with_flags(soup)]
+
+    def extract_boxes_with_flags(self, soup):
+        """
+        Collect ((x, y, w, h), interactible) pairs from every data-bounds
+        attribute, where interactible reflects data-interactible="true".
+        """
+        pairs = []
         for tag in soup.find_all(True):
             bounds_str = tag.get("data-bounds")
             if not bounds_str:
@@ -101,29 +115,39 @@ class OutputWriter:
             try:
                 x, y, w, h = (int(v) for v in bounds_str.split(","))
             except ValueError:
+                logger.warning(
+                    "extract_boxes: malformed data-bounds %r on <%s>; skipping.",
+                    bounds_str, tag.name,
+                )
                 continue
-            boxes.append((x, y, w, h))
+            interactible = tag.get("data-interactible") == "true"
+            pairs.append(((x, y, w, h), interactible))
         if self.config.unique_boxes:
             seen = set()
             unique = []
-            for box in boxes:
-                if box not in seen:
-                    seen.add(box)
-                    unique.append(box)
+            for box, inter in pairs:
+                # Key on box + flag so an interactible and non-interactible box
+                # at identical coords are both kept (colored differently).
+                key = (box, inter)
+                if key not in seen:
+                    seen.add(key)
+                    unique.append((box, inter))
             return unique
-        return boxes
+        return pairs
 
-    def annotate(self, screenshot_bytes, boxes):
+    def annotate(self, screenshot_bytes, soup):
         base = Image.open(io.BytesIO(screenshot_bytes)).convert("RGBA")
         overlay = Image.new("RGBA", base.size, (0, 0, 0, 0))
         draw = ImageDraw.Draw(overlay)
-        color = self.config.box_color
-        for x, y, w, h in boxes:
+        plain = self.config.box_color
+        interactible_color = self.config.interactible_box_color
+        for (x, y, w, h), interactible in self.extract_boxes_with_flags(soup):
+            color = interactible_color if interactible else plain
             draw.rectangle([x, y, x + w, y + h], outline=(*color, 220))
         return Image.alpha_composite(base, overlay).convert("RGB")
 
-    def save_annotated(self, screenshot_bytes, boxes):
-        image = self.annotate(screenshot_bytes, boxes)
+    def save_annotated(self, screenshot_bytes, soup):
+        image = self.annotate(screenshot_bytes, soup)
         if self.config.annotated_path:
             image.save(self._resolve(self.config.annotated_path))
         return image
@@ -178,7 +202,7 @@ class PageExtractor:
         html = self.output.write_html(soup)
         boxes = self.output.extract_boxes(soup)
         logger.info("Found %d bounding boxes.", len(boxes))
-        annotated = self.output.save_annotated(screenshot_bytes, boxes)
+        annotated = self.output.save_annotated(screenshot_bytes, soup)
 
         return ExtractionResult(
             snapshot=snapshot,
