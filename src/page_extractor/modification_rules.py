@@ -8,6 +8,7 @@ import logging
 from bs4 import Comment
 
 from .constants import (
+    CONTROL_TAGS,
     ELEMENT_NODE,
     INTERACTIVE_ROLES,
     INTERACTIVE_TAGS,
@@ -82,7 +83,8 @@ class UnwrapUnkept(Rule):
     the parser (tag, attrs, styles, children).
     """
 
-    def __init__(self, interactive_tags=None, interactive_roles=None, media_tags=None):
+    def __init__(self, interactive_tags=None, interactive_roles=None,
+                 media_tags=None, control_tags=None):
         self.interactive_tags = (
             set(interactive_tags) if interactive_tags is not None else set(INTERACTIVE_TAGS)
         )
@@ -90,6 +92,7 @@ class UnwrapUnkept(Rule):
             set(interactive_roles) if interactive_roles is not None else set(INTERACTIVE_ROLES)
         )
         self.media_tags = set(media_tags) if media_tags is not None else set(MEDIA_TAGS)
+        self.control_tags = set(control_tags) if control_tags is not None else set(CONTROL_TAGS)
 
     def is_interactible(self, parser, node_id):
         tag = parser.tag_of(node_id)
@@ -103,6 +106,23 @@ class UnwrapUnkept(Rule):
         # CDP-detected click handler (catches JS-driven clickables that have no
         # semantic tag, role, or cursor:pointer, e.g. Vue @click divs).
         return parser.is_clickable(node_id)
+
+    def is_independently_interactible(self, parser, node_id):
+        """
+        Interactible in its own right, as a matter of fact, rather than by
+        merely inheriting cursor:pointer from a clickable ancestor. True when:
+          - the element has its OWN CDP click handler (isClickable), or
+          - it is a genuine control element (button/input/select/textarea), or
+          - it is a link with an href.
+        A plain span/div that only shows cursor:pointer because the property
+        cascades from its parent is NOT independently interactible.
+        """
+        if parser.is_clickable(node_id):
+            return True
+        tag = parser.tag_of(node_id)
+        if tag in self.control_tags:
+            return True
+        return tag == "a" and bool(parser.get_attr(node_id, "href"))
 
     def has_direct_content(self, parser, node_id):
         tag = parser.tag_of(node_id)
@@ -286,29 +306,37 @@ class MarkInteractible(Rule):
 
 class CompactInteractible(Rule):
     """
-    Compact an interactible single-child wrapper into its child: unwrap the
-    interactible parent and move its data-interactible flag onto the surviving
-    child, which keeps its own (tighter) bounds. Reduces element count while
-    preserving that the region is interactible.
+    Compact interactible single-child nesting into fewer elements.
 
-    Runs after MarkInteractible (needs data-interactible present). Only compacts
-    when the parent adds nothing meaningful beyond bounds/node-id/interactible
-    and has no direct text.
+    Runs after MarkInteractible (needs data-interactible present). A wrapper is
+    only ever compacted when it adds nothing meaningful beyond
+    bounds/node-id/interactible and has no direct text of its own.
 
-    compact_nested controls what happens when the single child is ITSELF
-    interactible:
-      - False (default): keep both. Two nested interactible elements may map to
-        different actions (e.g. hover vs click), so both are preserved.
-      - True: unwrap the parent anyway, keeping the (already interactible)
-        child. Useful to collapse the deep interactible chains that CSS
-        cursor:pointer inheritance produces, at the cost of merging the two
-        actions into the child's element/bounds.
+    Two situations:
+
+    1. Interactible wrapper around a NON-interactible sole child: the wrapper is
+       collapsed into the child and the interactible flag moves down, UNLESS the
+       wrapper is interactible in its own right (an actual control/link/own
+       click handler), which must survive even around a plain text span.
+
+    2. Two nested interactible elements (wrapper and child both interactible):
+       governed by compact_nested:
+         - False (default): keep BOTH. Nested interactibles may be distinct
+           actions (e.g. hover vs click), so nothing is merged.
+         - True: merge, but inheritance-aware. Preserve a child that is
+           interactible in its own right (own CDP click handler, a control
+           element, or a link with href). Only collapse when the child is
+           interactible merely because cursor:pointer cascaded down from the
+           wrapper - i.e. the same click target - moving the wrapper's
+           keep-attributes (e.g. href) onto the surviving inner child, which
+           keeps its own (tighter) bounds.
     """
 
     def __init__(self, keep_attrs=None, compact_nested=False):
         self.keep_attrs = set(keep_attrs) if keep_attrs is not None else set(KEEP_ATTRS)
         self.compact_nested = compact_nested
         self._ignorable = {"data-bounds", "data-node-id", "data-interactible"}
+        self._interactibility = UnwrapUnkept()
 
     def _meaningful_attrs(self, tag):
         return {
@@ -320,6 +348,16 @@ class CompactInteractible(Rule):
         return "".join(
             str(c) for c in tag.contents if isinstance(c, str)
         ).strip()
+
+    def _move_attrs_down(self, parent, child):
+        """
+        Transfer the parent's meaningful keep-attributes (e.g. href) onto the
+        child, without overwriting attributes the child already has. The child
+        keeps its own (tighter) bounds.
+        """
+        for key in self._meaningful_attrs(parent):
+            if key not in (child.attrs or {}):
+                child[key] = parent[key]
 
     def __call__(self, soup, parser):
         changed = True
@@ -334,21 +372,43 @@ class CompactInteractible(Rule):
                 child_elements = [c for c in tag.contents if getattr(c, "name", None)]
                 if len(child_elements) != 1 or self._own_text(tag):
                     continue
-                if self._meaningful_attrs(tag):
-                    continue
                 child = child_elements[0]
-                # When the child is itself interactible, keep both unless nested
-                # compaction is explicitly enabled (distinct actions such as
-                # hover vs click may otherwise be lost).
+                child_nid = node_id_of(child)
+
                 if child.get("data-interactible") == "true":
+                    # Two nested interactible elements. By default keep BOTH.
                     if not self.compact_nested:
                         continue
-                    # Child already carries the flag; just drop the wrapper.
+                    # compact_nested=True: merge, but stay inheritance-aware -
+                    # preserve a child that is interactible in its own right
+                    # (own click handler / control / link), only collapse when
+                    # the child is interactible merely by inheriting
+                    # cursor:pointer (the same click target).
+                    independent_child = (
+                        child_nid is not None
+                        and self._interactibility.is_independently_interactible(
+                            parser, child_nid
+                        )
+                    )
+                    if independent_child:
+                        continue
+                    self._move_attrs_down(tag, child)
                     tag.unwrap()
                     changed = True
                     break
-                # Move the interactible flag down to the surviving child, which
-                # keeps its own (smaller) bounds; drop the wrapper.
+
+                # Child not interactible: collapse a pure interactible wrapper
+                # into its sole child, moving the flag down. Never unwrap an
+                # element that is interactible in its own right (e.g. <button>
+                # wrapping only a text span) or that carries a meaningful attr.
+                if self._meaningful_attrs(tag):
+                    continue
+                tag_nid = node_id_of(tag)
+                if (
+                    tag_nid is not None
+                    and self._interactibility.is_independently_interactible(parser, tag_nid)
+                ):
+                    continue
                 child["data-interactible"] = "true"
                 tag.unwrap()
                 changed = True

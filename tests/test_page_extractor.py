@@ -505,3 +505,117 @@ def test_js_clickable_detected_via_is_clickable(make_snapshot):
     soup = apply_rules(HtmlBuilder(parser).to_soup(), parser, default_rules())
     marked = [t for t in soup.find_all(True) if t.get("data-interactible") == "true"]
     assert marked, "JS-clickable div should be marked interactible"
+
+
+
+def test_nested_interactibles_kept_by_default(make_snapshot):
+    # a(href, cursor) > span(inherited cursor): by default (compact_nested=False)
+    # both nested interactibles are preserved.
+    spec = [
+        DOCUMENT,
+        {"name": "a", "type": 1, "parent": 0,
+         "attrs": [("href", "/x")], "styles": {"cursor": "pointer"}},
+        {"name": "span", "type": 1, "parent": 1, "styles": {"cursor": "pointer"}},
+        {"name": "#text", "type": 3, "parent": 2, "value": "home"},
+    ]
+    snap = make_snapshot(
+        spec,
+        {1: (0, 0, 52, 64), 2: (10, 24, 28, 16), 3: (10, 24, 28, 16)},
+    )
+    parser = SnapshotParser(snap)
+    soup = apply_rules(HtmlBuilder(parser).to_soup(), parser, default_rules())
+    a = soup.find("a")
+    span = soup.find("span")
+    assert a is not None and span is not None
+    assert a.get("data-bounds") == "0,0,52,64"
+    assert span.get("data-bounds") == "10,24,28,16"
+
+
+def _rules_compact_nested():
+    from page_extractor import (
+        CleanEmpty,
+        CollapseWrappers,
+        CompactInteractible,
+        KeepAttrs,
+        MarkInteractible,
+        StripTags,
+        UnwrapHidden,
+        UnwrapUnkept,
+    )
+    return [
+        StripTags(), UnwrapHidden(), UnwrapUnkept(), MarkInteractible(),
+        CollapseWrappers(), CompactInteractible(compact_nested=True),
+        CleanEmpty(), KeepAttrs(),
+    ]
+
+
+def test_compact_nested_merges_inherited_child(make_snapshot):
+    # compact_nested=True: a(href) > span(inherited cursor only) -> the span is
+    # NOT independently interactible (same click target), so the wrapper
+    # collapses, the inner span survives with its own bounds, href moves down.
+    spec = [
+        DOCUMENT,
+        {"name": "a", "type": 1, "parent": 0,
+         "attrs": [("href", "/x")], "styles": {"cursor": "pointer"}},
+        {"name": "span", "type": 1, "parent": 1, "styles": {"cursor": "pointer"}},
+        {"name": "#text", "type": 3, "parent": 2, "value": "home"},
+    ]
+    snap = make_snapshot(
+        spec,
+        {1: (0, 0, 52, 64), 2: (10, 24, 28, 16), 3: (10, 24, 28, 16)},
+    )
+    parser = SnapshotParser(snap)
+    soup = apply_rules(HtmlBuilder(parser).to_soup(), parser, _rules_compact_nested())
+    assert soup.find_all("a") == []
+    span = soup.find("span")
+    assert span is not None
+    assert span.get("data-interactible") == "true"
+    assert span.get("data-bounds") == "10,24,28,16"
+    assert span.get("href") == "/x"
+    assert "home" in soup.get_text()
+
+
+def test_compact_nested_preserves_independent_child(make_snapshot):
+    # compact_nested=True is inheritance-aware: a > button (button is an
+    # independent control) -> both preserved even under nested compaction.
+    spec = [
+        DOCUMENT,
+        {"name": "a", "type": 1, "parent": 0,
+         "attrs": [("href", "/x")], "styles": {"cursor": "pointer"}},
+        {"name": "button", "type": 1, "parent": 1, "styles": {"cursor": "pointer"}},
+        {"name": "#text", "type": 3, "parent": 2, "value": "go"},
+    ]
+    snap = make_snapshot(
+        spec,
+        {1: (0, 0, 50, 30), 2: (5, 5, 40, 20), 3: (7, 7, 30, 14)},
+    )
+    parser = SnapshotParser(snap)
+    soup = apply_rules(HtmlBuilder(parser).to_soup(), parser, _rules_compact_nested())
+    a = soup.find("a")
+    button = soup.find("button")
+    assert a is not None and button is not None
+    assert a.find("button") is button
+
+
+def test_leaf_elements_rendered_on_single_line(make_snapshot):
+    # A leaf (text-only) element prints on one line; a parent with child
+    # elements spans multiple lines. Also: no [document] wrapper leaks out.
+    spec = [
+        DOCUMENT,
+        {"name": "div", "type": 1, "parent": 0},          # 1 wrapper (has child el)
+        {"name": "button", "type": 1, "parent": 1},       # 2 leaf (text only)
+        {"name": "#text", "type": 3, "parent": 2, "value": "Go"},  # 3
+    ]
+    snap = make_snapshot(
+        spec,
+        {1: (0, 0, 40, 20), 2: (2, 2, 36, 16), 3: (2, 2, 36, 16)},
+    )
+    parser = SnapshotParser(snap)
+    soup = apply_rules(HtmlBuilder(parser).to_soup(), parser, default_rules())
+    text = OutputWriter()._pretty(soup)
+
+    assert "[document]" not in text
+    # The leaf button is on a single line with its text inline.
+    button_lines = [ln for ln in text.splitlines() if "<button" in ln]
+    assert button_lines, "button not found in output"
+    assert all(ln.rstrip().endswith("</button>") and "Go" in ln for ln in button_lines)

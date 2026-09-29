@@ -3,6 +3,7 @@ import logging
 from dataclasses import dataclass
 from pathlib import Path
 
+from bs4 import NavigableString, Tag
 from PIL import Image, ImageDraw
 
 from .browser_session import BrowserSession
@@ -90,13 +91,64 @@ class OutputWriter:
         return p
 
     def write_html(self, soup):
-        text = soup.prettify() if self.config.prettify else str(soup)
+        text = self._pretty(soup) if self.config.prettify else str(soup)
         if self.config.html_path:
             with open(self._resolve(self.config.html_path), "w", encoding="utf-8") as f:
                 f.write(text)
         if self.config.stdout:
             print(text)
         return text
+
+    def _pretty(self, node, indent=0):
+        """
+        Pretty-print the tree like prettify(), except an element that has no
+        child ELEMENTS (a leaf: empty or text-only) is rendered on a single
+        line: <tag ...>text</tag>.
+        """
+        pad = " " * indent
+        lines = []
+        # Top-level container or the BeautifulSoup [document] pseudo-root: print
+        # each child without emitting a wrapper tag.
+        if not isinstance(node, Tag) or node.name == "[document]":
+            for child in getattr(node, "contents", []):
+                if isinstance(child, NavigableString):
+                    text = child.strip()
+                    if text:
+                        lines.append(pad + text)
+                else:
+                    lines.append(self._pretty(child, indent))
+            return "\n".join(lines)
+
+        open_tag = self._open_tag(node)
+        child_elements = [c for c in node.contents if isinstance(c, Tag)]
+
+        # Leaf element (no child elements): single line.
+        if not child_elements:
+            text = node.get_text().strip()
+            return f"{pad}{open_tag}{text}</{node.name}>"
+
+        # Has child elements: open tag, recurse, close tag on their own lines.
+        lines.append(pad + open_tag)
+        for child in node.contents:
+            if isinstance(child, NavigableString):
+                text = child.strip()
+                if text:
+                    lines.append(" " * (indent + 1) + text)
+            else:
+                lines.append(self._pretty(child, indent + 1))
+        lines.append(f"{pad}</{node.name}>")
+        return "\n".join(lines)
+
+    @staticmethod
+    def _open_tag(tag):
+        """Render a start tag with sorted attributes (matching prettify order)."""
+        parts = [tag.name]
+        for key in sorted(tag.attrs):
+            val = tag.attrs[key]
+            if isinstance(val, list):
+                val = " ".join(val)
+            parts.append(f'{key}="{val}"')
+        return "<" + " ".join(parts) + ">"
 
     def extract_boxes(self, soup):
         """Collect (x, y, w, h) int tuples from every data-bounds attribute."""

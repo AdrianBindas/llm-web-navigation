@@ -68,6 +68,12 @@ INTERACTIVE_ROLES = {
 # Tags whose presence counts as direct visual content.
 MEDIA_TAGS = {"img", "video", "canvas", "audio"}
 
+# Genuine control elements: structurally distinct actionable elements (a form
+# control, or a link with an href). Unlike INTERACTIVE_TAGS (a broader heuristic
+# list) these are used to decide whether a nested interactible element is an
+# action in its own right rather than merely inheriting cursor:pointer.
+CONTROL_TAGS = {"button", "input", "select", "textarea"}
+
 # Maximum length of a kept attribute value; longer values are truncated to keep
 # script-in-attribute noise out of the dump.
 MAX_ATTR_LEN = 120
