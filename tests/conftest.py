@@ -94,3 +94,47 @@ def filtered_soup(make_snapshot):
 def boxes_of():
     """Factory fixture returning a helper that extracts boxes from a soup."""
     return OutputWriter().extract_boxes
+
+
+
+# --- Qwen integration test gating ------------------------------------------
+# Tests marked ``@pytest.mark.qwen`` load the real Qwen model and are skipped
+# unless explicitly enabled, either with the ``--run-qwen`` CLI flag or by
+# setting ``run_qwen = true`` under ``[tool.pytest.ini_options]`` in
+# pyproject.toml (exposed here as the ``run_qwen`` ini option).
+
+
+def pytest_addoption(parser):
+    parser.addoption(
+        "--run-qwen",
+        action="store_true",
+        default=False,
+        help="Run tests that load the real Qwen model.",
+    )
+    parser.addini(
+        "run_qwen",
+        help="Run tests that load the real Qwen model.",
+        type="bool",
+        default=False,
+    )
+
+
+def pytest_configure(config):
+    config.addinivalue_line(
+        "markers", "qwen: test that loads the real Qwen model (opt-in)."
+    )
+
+
+def _qwen_enabled(config):
+    return bool(config.getoption("--run-qwen") or config.getini("run_qwen"))
+
+
+def pytest_collection_modifyitems(config, items):
+    if _qwen_enabled(config):
+        return
+    skip_qwen = pytest.mark.skip(
+        reason="needs --run-qwen (or run_qwen=true in pyproject) to load Qwen."
+    )
+    for item in items:
+        if "qwen" in item.keywords:
+            item.add_marker(skip_qwen)

@@ -45,3 +45,11 @@ dev = [
     "pytest>=9.1.1",
     "ruff>=0.16.8",
 ]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+markers = [
+    "qwen: test that loads the real Qwen model (opt-in via --run-qwen).",
+]
+# Flip to true to always run the Qwen model tests, or pass --run-qwen on the CLI.
+run_qwen = false
